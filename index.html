@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matriz de Control - Cuaderno de Obra | 2026</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0c4a8c; --primary-dark: #083358; --accent: #1d6fd9;
+            --hero-blue: linear-gradient(145deg, #0a3d7a 0%, #1565c0 45%, #1976d2 100%);
+            --success: #0d9488; --warning: #ea580c; --danger: #dc2626;
+            --bg: #eef2f7; --card: #ffffff; --border: #e2e8f0;
+            --text: #1e293b; --muted: #64748b; --radius: 12px; --shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); line-height: 1.5; padding: 20px; }
+        .container { max-width: 1540px; margin: 0 auto; }
+
+        .hero {
+            background: var(--hero-blue);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 22px 22px 20px;
+            margin-bottom: 20px;
+            color: #f8fafc;
+        }
+        header.hero-head { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        header.hero-head .brand { justify-self: start; }
+        header.hero-head .meta { justify-self: end; text-align: right; }
+        header.hero-head .hero-center { justify-self: center; }
+        .btn-reportes {
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px;
+            background: rgba(255,255,255,0.18); color: #fff; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.06em;
+            border: 1px solid rgba(255,255,255,0.45); cursor: pointer; transition: background 0.2s, transform 0.15s;
+            text-transform: uppercase; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .btn-reportes:hover { background: rgba(255,255,255,0.28); transform: translateY(-1px); }
+        .btn-reportes:focus { outline: 2px solid #fff; outline-offset: 2px; }
+        .btn-reportes .mini-chart { display: inline-flex; align-items: flex-end; gap: 3px; height: 16px; }
+        .btn-reportes .mini-chart span { width: 5px; border-radius: 1px; }
+        .btn-reportes .mini-chart span:nth-child(1) { height: 8px; background: #22c55e; }
+        .btn-reportes .mini-chart span:nth-child(2) { height: 14px; background: #3b82f6; }
+        .btn-reportes .mini-chart span:nth-child(3) { height: 11px; background: #ef4444; }
+        @media (max-width: 900px) {
+            header.hero-head { grid-template-columns: 1fr; text-align: center; }
+            header.hero-head .brand, header.hero-head .meta { justify-self: center; text-align: center; }
+            header.hero-head .hero-center { justify-self: center; }
+            .meta-wrap { justify-content: center; }
+            .meta-wrap .meta-text { text-align: center; }
+        }
+        .brand h1 { font-size: clamp(1.15rem, 2.5vw, 1.55rem); font-weight: 700; letter-spacing: -0.02em; }
+        .brand p { opacity: 0.92; font-size: 0.9rem; margin-top: 4px; }
+        .meta { text-align: right; font-size: 0.9rem; }
+        .meta strong { font-size: 1.02rem; font-weight: 600; }
+        .meta-wrap { display: flex; align-items: center; justify-content: flex-end; gap: 14px; flex-wrap: wrap; }
+        .meta-wrap .meta-text { text-align: right; }
+        .ld-avatar {
+            width: 48px; height: 48px; min-width: 48px; border-radius: 50%;
+            background: linear-gradient(145deg, #0f766e 0%, #134e4a 100%);
+            color: #f0fdfa; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.02em;
+            border: 2px solid rgba(255,255,255,0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: default; user-select: none; transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .ld-avatar.ld-avatar--active { cursor: pointer; }
+        .ld-avatar.ld-avatar--active:hover { transform: scale(1.05); box-shadow: 0 0 0 3px rgba(255,255,255,0.35), 0 6px 16px rgba(0,0,0,0.3); }
+        .ld-avatar.ld-avatar--active:focus { outline: 2px solid #fff; outline-offset: 3px; }
+        .ld-avatar:not(.ld-avatar--active) { opacity: 0.55; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 12px; margin-top: 18px; }
+        .kpi {
+            padding: 14px 16px; border-radius: var(--radius); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+            border: 2px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.12); text-align: left;
+        }
+        .kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
+        .kpi:focus { outline: 2px solid #fff; outline-offset: 2px; }
+        .kpi h3 { font-size: 0.72rem; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.06em; opacity: 0.92; }
+        .kpi .val { font-size: 1.85rem; font-weight: 800; line-height: 1.1; }
+        .kpi .hint { font-size: 0.7rem; margin-top: 6px; opacity: 0.85; font-weight: 500; }
+        .kpi.total { background: linear-gradient(135deg, #e8f4ff 0%, #cfe8ff 100%); color: #0c4a8c; }
+        .kpi.cont { background: linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 100%); color: #065f46; }
+        .kpi.sup { background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); color: #9a3412; }
+        .kpi.atendido { background: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%); color: #064e3b; }
+        .kpi.por-atender { background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%); color: #7f1d1d; }
+        .kpi.otras { background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%); color: #4c1d95; }
+        .kpi.active-filter { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.65), 0 8px 24px rgba(0,0,0,0.2); }
+
+        .toolbar { background: var(--card); padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .toolbar-local-only { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .toolbar.is-local .toolbar-local-only { display: none; }
+        .toolbar-bd-info {
+            flex: 1 1 260px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 8px 12px;
+            padding: 8px 12px; background: #f1f5f9; border-radius: 8px; border: 1px solid var(--border);
+            font-size: 0.8rem; color: var(--muted); font-weight: 600; text-align: left;
+        }
+        .toolbar-bd-info .bd-info-ts { font-size: 0.88rem; font-weight: 700; line-height: 1.35; }
+        .bd-load-progress { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 0 1 280px; justify-content: flex-end; margin-left: auto; }
+        .bd-load-progress.bd-load-progress--hidden { display: none; }
+        .bd-load-bar-outer {
+            flex: 1; min-width: 90px; max-width: 220px; height: 11px; background: #e2e8f0; border-radius: 999px;
+            overflow: hidden; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+        }
+        .bd-load-bar-inner {
+            height: 100%; width: 0%; border-radius: 999px;
+            background: linear-gradient(90deg, #0d9488 0%, #2563eb 55%, #7c3aed 100%);
+            transition: width 0.18s ease-out;
+        }
+        .bd-load-pct { font-size: 0.78rem; font-weight: 800; color: var(--primary-dark); font-variant-numeric: tabular-nums; min-width: 2.6rem; text-align: right; }
+        .bd-ts-row {
+            display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 2px;
+            font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+            font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
+        }
+        .bd-ts-date, .bd-ts-time {
+            color: var(--primary-dark); font-weight: 700; font-size: 0.9rem;
+            padding: 3px 8px; border-radius: 8px;
+            background: linear-gradient(180deg, #fff 0%, #e8f0fa 100%);
+            border: 1px solid #94a3b8;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+        .bd-ts-slash { color: #64748b; font-weight: 800; font-size: 1.05rem; padding: 0 6px; user-select: none; }
+        .btn-usuario {
+            min-width: 138px; justify-content: center;
+            background: linear-gradient(180deg, #0f766e 0%, #0d9488 100%); color: #fff; font-weight: 700;
+            border: 1px solid rgba(15, 118, 110, 0.6); box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25);
+        }
+        .btn-usuario:hover { filter: brightness(1.06); }
+        .btn-usuario:focus { outline: 2px solid #0d9488; outline-offset: 2px; }
+        .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; font-size: 0.9rem; }
+        .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text); } .btn-outline:hover { background: var(--bg); }
+        .btn-tool-import i { color: #16a34a; }
+        .btn-tool-export i { color: #2563eb; }
+        .btn-tool-filters i { color: #9333ea; }
+        .btn-tool-save i { color: #0d9488; }
+        .btn-tool-load i { color: #d97706; }
+        .spacer { flex: 1; }
+        
+        .filters { background: var(--card); padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 15px; display: none; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .filters.active { display: flex; }
+        .filter-group { flex: 1; min-width: 150px; }
+        .filter-group label { font-size: 0.75rem; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
+        .filter-group input, .filter-group select { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--bg); }
+        .table-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+        td.num, td.fecha { white-space: nowrap; }
+        th { background: #e9ecef; color: var(--muted); font-weight: 600; position: sticky; top: 0; font-size: 0.8rem; text-transform: uppercase; }
+        tr.data-row { cursor: pointer; }
+        tr.data-row:hover { background: #f1f5f9; }
+        tr.data-row.row-selected { background: #b2ebf2 !important; box-shadow: inset 3px 0 0 #00acc1; }
+        tr.data-row.row-selected:hover { background: #80deea !important; }
+        mark.hl-keyword { background: #ffeb3b; color: inherit; padding: 0 1px; border-radius: 2px; font-weight: 600; }
+        .cell-asunto {
+            white-space: pre-wrap; word-break: break-word; line-height: 1.45; min-width: 200px; max-width: 480px;
+            font-size: 0.88rem;
+        }
+        .cell-contenido {
+            max-width: 320px; min-width: 180px; max-height: 4.5em; overflow: auto; white-space: pre-wrap; word-break: break-word;
+            font-size: 0.82rem; line-height: 1.45; padding: 6px 8px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);
+        }
+        .cell-contenido.expanded { max-height: none; max-width: min(520px, 45vw); }
+        .btn-text { background: none; border: none; color: var(--accent); font-size: 0.75rem; font-weight: 600; cursor: pointer; padding: 4px 0; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-text:hover { text-decoration: underline; }
+        .resp-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+        .r-si { background: #d1e7dd; color: #0f5132; } .r-no { background: #f8d7da; color: #842029; } .r-na { background: #e2e3e5; color: #41464b; }
+        .actions { display: flex; gap: 6px; }
+        .act-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; color: var(--muted); transition: 0.2s; }
+        .act-btn:hover { color: var(--primary); } .act-btn.del:hover { color: var(--danger); }
+        .link-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 2.1rem; height: 2.1rem; border-radius: 8px; border: 1px solid var(--border); background: #f8fafc; color: var(--accent); text-decoration: none; transition: 0.15s; }
+        .link-icon-btn:hover { background: #e0f2fe; border-color: var(--accent); color: var(--primary-dark); }
+        .link-icon-btn i { font-size: 1.05rem; }
+        .link-cell .na { color: var(--muted); font-size: 0.85rem; }
+
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card); width: 95%; max-width: 750px; max-height: 90vh; overflow-y: auto; border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg); }
+        .modal-body { padding: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .modal-body .full { grid-column: 1 / -1; }
+        .modal-body label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 5px; font-weight: 500; }
+        .modal-body input, .modal-body select, .modal-body textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
+        .modal-body textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+        .modal.modal-readonly .modal-body { grid-template-columns: 1fr; }
+        .detail-block { margin-bottom: 14px; }
+        .detail-block h4 { font-size: 0.72rem; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; }
+        .detail-block .body { font-size: 0.95rem; white-space: pre-wrap; word-break: break-word; max-height: 50vh; overflow: auto; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--bg); }
+        .hidden { display: none; }
+        #modal-supabase-config .modal-content { max-width: 520px; }
+        #modal-supabase-config .modal-body { display: block; }
+        .supabase-status { margin-top: 12px; padding: 10px 12px; font-size: 0.85rem; border-radius: 8px; line-height: 1.45; }
+        .supabase-status.is-ok { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
+        .supabase-status.is-warn { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+        .supabase-status.is-err { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+        .supabase-status.is-info { background: #eff6ff; color: #1e40af; border: 1px solid #93c5fd; }
+        .supabase-config-summary { margin: 12px 0; padding: 12px 14px; font-size: 0.85rem; line-height: 1.55; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
+        .btn-tool-save-online { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; border: none; }
+        .btn-tool-save-online:hover { filter: brightness(1.06); }
+
+        #modal-reportes { z-index: 1100; align-items: flex-start; padding: 12px 0; overflow-y: auto; }
+        #modal-reportes .modal-report-inner {
+            width: min(1480px, 98vw); max-height: min(94vh, 1200px); margin: 0 auto; background: #f8fafc;
+            border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .report-topbar {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 14px 18px; background: #fff; border-bottom: 1px solid var(--border);
+        }
+        .report-topbar h2 { font-size: 1rem; color: var(--primary); margin: 0; }
+        .report-nav-bar {
+            display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;
+            padding: 14px 16px; background: #eef2f7; border-bottom: 1px solid var(--border);
+        }
+        .report-nav-bar .report-tab-strip {
+            display: flex; flex-wrap: wrap; gap: 10px; flex: 1 1 280px; justify-content: flex-start; align-items: flex-end;
+            padding: 0; margin: 0; background: transparent; border: none;
+        }
+        .report-date-box {
+            display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px;
+            background: #0c4a8c; padding: 12px 16px; border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+        .report-date-field { display: flex; flex-direction: column; gap: 4px; min-width: 120px; }
+        .report-date-field label {
+            font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; color: rgba(255,255,255,0.92); text-transform: uppercase;
+        }
+        .report-date-field select {
+            padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.35);
+            background: #fff; color: var(--text); font-size: 0.88rem; font-weight: 600; cursor: pointer;
+        }
+        .btn-report-total-fecha {
+            padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.45);
+            background: #083358; color: #fff; font-weight: 700; font-size: 0.78rem; cursor: pointer;
+            white-space: nowrap; transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .btn-report-total-fecha:hover { background: #0a4577; }
+        .btn-report-total-fecha.active {
+            background: linear-gradient(180deg, #fb923c 0%, #ea580c 100%);
+            border-color: rgba(255,255,255,0.55);
+            box-shadow: 0 2px 10px rgba(234, 88, 12, 0.45);
+        }
+        .report-filter-hint {
+            margin: 0; padding: 8px 18px 10px; font-size: 0.82rem; color: var(--muted); font-weight: 600;
+            background: #e2e8f0; border-bottom: 1px solid var(--border);
+        }
+        .report-tab {
+            min-width: 132px; padding: 12px 14px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 0.78rem;
+            color: #fff; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+            box-shadow: 0 4px 12px rgba(15,23,42,0.18); transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .report-tab:hover { transform: translateY(-2px); }
+        .report-tab.active { box-shadow: 0 0 0 3px rgba(15,23,42,0.35), 0 8px 20px rgba(0,0,0,0.2); }
+        .report-tab.tab-resumen { background: linear-gradient(180deg, #fb923c 0%, #ea580c 100%); }
+        .report-tab.tab-resumen .report-tab-label,
+        .report-tab.tab-resumen.active .report-tab-label { background: transparent; color: #fff; padding: 0; border-radius: 0; }
+        .report-tab.tab-por-atender { background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%); }
+        .report-tab.tab-atendidas { background: linear-gradient(180deg, #15803d 0%, #14532d 100%); }
+        .report-tab.tab-otras { background: linear-gradient(180deg, #0f766e 0%, #115e59 100%); }
+        .report-tab.tab-kpis { background: linear-gradient(180deg, #a855f7 0%, #6b21a8 100%); }
+        .report-tab.tab-descargo { background: linear-gradient(180deg, #1e3a5f 0%, #0c4a8c 100%); }
+        .report-tab i { font-size: 1.25rem; opacity: 0.95; }
+        .report-tab-label { font-size: 0.76rem; line-height: 1.2; }
+        .report-body { overflow-y: auto; padding: 18px; flex: 1; background: #f1f5f9; }
+        .report-pane { display: none; }
+        .report-pane.active { display: block; }
+        .report-title-block { margin-bottom: 16px; }
+        .report-title-block h1 { font-size: clamp(1.1rem, 2.2vw, 1.45rem); color: var(--primary-dark); display: flex; align-items: center; gap: 10px; margin: 0 0 6px; }
+        .report-title-block p { margin: 0; color: var(--muted); font-size: 0.95rem; font-weight: 600; }
+        .report-kpi-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 18px;
+        }
+        .report-kpi-card {
+            background: #fff; border-radius: 10px; padding: 12px 14px; border-left: 4px solid #94a3b8;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+        }
+        .report-kpi-card h4 { font-size: 0.65rem; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; letter-spacing: 0.04em; }
+        .report-kpi-card .big { font-size: 1.55rem; font-weight: 800; line-height: 1.1; }
+        .report-kpi-card .sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+        .report-kpi-card.c-blue { border-left-color: #2563eb; } .report-kpi-card.c-green { border-left-color: #16a34a; }
+        .report-kpi-card.c-purple { border-left-color: #9333ea; } .report-kpi-card.c-amber { border-left-color: #ca8a04; }
+        .report-kpi-card.c-teal { border-left-color: #0d9488; } .report-kpi-card.c-red { border-left-color: #dc2626; }
+        .report-kpi-card.c-navy { border-left-color: #1e3a8a; } .report-kpi-card.c-slate { border-left-color: #334155; }
+        .report-charts-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 18px;
+        }
+        @media (max-width: 1024px) { .report-charts-grid { grid-template-columns: 1fr; } }
+        .report-chart-box {
+            background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 2px 10px rgba(15,23,42,0.07);
+        }
+        .report-chart-box h3 { font-size: 0.78rem; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; letter-spacing: 0.04em; }
+        .report-chart-box canvas { max-height: 260px; }
+        .report-kpi-list { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 2px 10px rgba(15,23,42,0.07); }
+        .report-kpi-list h3 { font-size: 0.78rem; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+        .report-kpi-list ul { list-style: none; margin: 0; padding: 0; }
+        .report-kpi-list li { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+        .report-kpi-list li:last-child { border-bottom: none; }
+        .report-table-wrap { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 18px; box-shadow: 0 2px 10px rgba(15,23,42,0.07); }
+        .report-table-wrap h3 { margin: 0; padding: 12px 16px; font-size: 0.85rem; background: var(--primary-dark); color: #fff; }
+        .report-table-wrap table { font-size: 0.82rem; }
+        .report-table-wrap th { background: var(--primary-dark); color: #fff; }
+        .report-table-wrap tr:nth-child(even) td { background: #f8fafc; }
+        .report-section-title { font-size: 1rem; font-weight: 800; color: var(--primary-dark); margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--primary); }
+        .report-data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .report-data-table th, .report-data-table td { padding: 10px 12px; border: 1px solid #cbd5e1; text-align: left; }
+        .report-data-table th { background: #e2e8f0; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; }
+        .report-block { margin-bottom: 22px; }
+        .report-block > .report-block-head { font-weight: 800; font-size: 0.95rem; color: #0f172a; margin-bottom: 8px; }
+        .report-data-table tbody tr.report-selectable-row { cursor: pointer; transition: background 0.12s; }
+        .report-data-table tbody tr.report-selectable-row:hover:not(.rep-row-selected) td { background: #f0fdfa !important; }
+        .report-data-table tbody tr.rep-row-selected td { background: #b2ebf2 !important; }
+        .report-data-table tbody tr.rep-row-selected { box-shadow: inset 4px 0 0 #00acc1; }
+
+        @media (max-width: 768px) { .modal-body { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <section class="hero" aria-label="Encabezado y resumen">
+        <header class="hero-head">
+            <div class="brand">
+                <h1>📖 MATRIZ DE CONTROL - CUADERNO DE OBRA</h1>
+                <p>P.A. PERÚ S.A.C | SUPERVISIÓN: TERRANDES S.A.C</p>
+            </div>
+            <div class="hero-center">
+                <button type="button" class="btn-reportes" onclick="openReportes()" title="Abrir reportes de gestión">
+                    <span class="mini-chart" aria-hidden="true"><span></span><span></span><span></span></span>
+                    REPORTES
+                </button>
+            </div>
+            <div class="meta">
+                <div class="meta-wrap">
+                    <button type="button" class="ld-avatar" id="ld-avatar" aria-label="Iniciales LD">LD</button>
+                    <div class="meta-text">
+                        <div><strong>Ing. Luis Deybis Aponte Primo</strong></div>
+                        <div>Residente de Obra | 2026</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="kpi-grid" role="toolbar" aria-label="Filtros rápidos por resumen">
+            <button type="button" class="kpi total" id="kpi-btn-all" data-kpi="all" title="Mostrar todos los asientos">
+                <h3>Total Asientos</h3><div class="val" id="kpi-total">0</div><div class="hint">Clic: ver todo</div>
+            </button>
+            <button type="button" class="kpi cont" id="kpi-btn-cont" data-kpi="contratista" title="Filtrar por Suscrito: Contratista">
+                <h3>Contratista</h3><div class="val" id="kpi-contratista">0</div><div class="hint">Clic: solo contratista</div>
+            </button>
+            <button type="button" class="kpi sup" id="kpi-btn-sup" data-kpi="supervision" title="Filtrar Supervisión e Inspector">
+                <h3>Supervisión / Inspector</h3><div class="val" id="kpi-super">0</div><div class="hint">Clic: supervisión e inspector</div>
+            </button>
+            <button type="button" class="kpi atendido" id="kpi-btn-si" data-kpi="si" title="Atención SI (atendido)">
+                <h3>Atendido</h3><div class="val" id="kpi-si">0</div><div class="hint">Atención: SI</div>
+            </button>
+            <button type="button" class="kpi por-atender" id="kpi-btn-no" data-kpi="no" title="Atención NO (por atender)">
+                <h3>Por Atender</h3><div class="val" id="kpi-pend">0</div><div class="hint">Atención: NO</div>
+            </button>
+            <button type="button" class="kpi otras" id="kpi-btn-na" data-kpi="na" title="Atención NA (otras gestiones)">
+                <h3>Otras gestiones</h3><div class="val" id="kpi-na">0</div><div class="hint">Atención: NA</div>
+            </button>
+        </div>
+    </section>
+
+    <div class="toolbar is-local" id="main-toolbar">
+        <input type="file" id="import-excel" class="hidden" accept=".xlsx,.xls,.csv">
+        <div class="toolbar-local-only" aria-label="Importación y exportación (visible en modo Administrador)">
+            <button type="button" class="btn btn-outline btn-tool-import" onclick="document.getElementById('import-excel').click()"><i class="fas fa-file-import"></i> Importar Excel</button>
+            <button type="button" class="btn btn-outline btn-tool-export" onclick="exportExcel()"><i class="fas fa-file-export"></i> Exportar Excel</button>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Asiento</button>
+        <div class="toolbar-bd-info" id="toolbar-bd-info">
+            <span>Base de Datos Actual:</span>
+            <span class="bd-info-ts" id="bd-loaded-display">—</span>
+            <div class="bd-load-progress bd-load-progress--hidden" id="bd-load-progress" aria-hidden="true">
+                <div class="bd-load-bar-outer" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Progreso de carga"><div class="bd-load-bar-inner" id="bd-load-bar-inner"></div></div>
+                <span class="bd-load-pct" id="bd-load-pct">0%</span>
+            </div>
+        </div>
+        <button type="button" class="btn btn-usuario" id="btn-toggle-usuario" onclick="toggleUsuarioMode()" title="Alternar entre modo local y administrador">Usuario: LOCAL</button>
+        <button type="button" class="btn btn-outline btn-tool-filters" onclick="toggleFilters()"><i class="fas fa-filter"></i> Filtros</button>
+        <div class="toolbar-local-only" aria-label="Respaldo JSON en equipo (visible en modo Administrador)">
+            <button type="button" class="btn btn-outline btn-tool-save" onclick="saveBD()"><i class="fas fa-save"></i> Guardar BD</button>
+            <button type="button" class="btn btn-tool-save-online" onclick="guardarBDOnline()"><i class="fas fa-cloud-upload-alt"></i> GuardarBD Online</button>
+            <button type="button" class="btn btn-outline btn-tool-load" onclick="document.getElementById('import-bd').click()"><i class="fas fa-folder-open"></i> Cargar BD</button>
+        </div>
+        <input type="file" id="import-bd" class="hidden" accept=".json">
+    </div>
+
+    <div class="filters" id="filters-panel">
+        <div class="filter-group" style="flex: 2;"><label>Palabra clave (Asunto y Contenido)</label><input type="text" id="f-key" placeholder="Buscar en asunto o contenido… Las coincidencias se resaltan en amarillo." autocomplete="off"></div>
+        <div class="filter-group"><label>Suscrito</label><select id="f-suscrito"><option value="">Todos</option><option value="__SUPERV__">Supervisión e Inspector</option><option>Contratista</option><option>Supervisión</option><option>Inspector de Obra</option></select></div>
+        <div class="filter-group"><label>Tipo</label><select id="f-tipo"></select></div>
+        <div class="filter-group"><label>Atención</label><select id="f-atencion"><option value="">Todas</option><option>SI</option><option>NO</option><option>NA</option></select></div>
+        <div class="filter-group"><label>Descargo a Asiento</label><select id="f-descargo"><option value="">Todas</option><option value="SI">SI</option><option value="NO">NO</option></select></div>
+        <div class="filter-group"><label>Fecha desde</label><input type="date" id="f-date-from"></div>
+        <div class="filter-group"><label>Fecha hasta</label><input type="date" id="f-date-to"></div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>N°</th><th>Suscrito</th><th>Fecha</th><th>Asunto</th><th>Contenido</th><th>Tipo</th><th>Atención</th><th>Descargo a Asiento</th><th>Carta</th><th>Carpeta</th><th>Acciones</th></tr></thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h2 id="modal-title">Registrar Asiento</h2><button class="btn btn-outline" onclick="closeModal()"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+            <div><label>N° Asiento</label><input type="number" id="m-id" readonly></div>
+            <div><label>Suscrito *</label><select id="m-suscrito" required><option>Contratista</option><option>Supervisión</option><option>Inspector de Obra</option></select></div>
+            <div><label>Fecha *</label><input type="date" id="m-fecha" required></div>
+            <div><label>Tipo</label><select id="m-tipo"></select></div>
+            <div><label>Atención</label><select id="m-atencion"><option>NA</option><option>SI</option><option>NO</option></select></div>
+            <div class="full"><label>Asunto *</label><input type="text" id="m-asunto" required></div>
+            <div class="full"><label>Contenido (Detalle completo)</label><textarea id="m-contenido" placeholder="Transcripción o resumen técnico..."></textarea></div>
+            <div class="full"><label>Descargo a Asiento</label><input type="text" id="m-descargo" placeholder="N° asiento o referencia del descargo..."></div>
+            <div class="full"><label>Carta (URL)</label><input type="url" id="m-link-carta" placeholder="https://drive.google.com/..."></div>
+            <div class="full"><label>Carpeta (URL)</label><input type="url" id="m-link-carpeta" placeholder="https://drive.google.com/..."></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveAsiento()"><i class="fas fa-save"></i> Guardar</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-readonly" id="modal-detail">
+    <div class="modal-content">
+        <div class="modal-header"><h2 id="detail-title">Detalle del asiento</h2><button type="button" class="btn btn-outline" onclick="closeDetailModal()"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body" style="display:block;">
+            <div class="detail-block"><h4>Referencia</h4><div id="detail-meta" class="body" style="max-height:none;"></div></div>
+            <div class="detail-block"><h4>Asunto</h4><div id="detail-asunto" class="body"></div></div>
+            <div class="detail-block"><h4>Descargo a Asiento</h4><div id="detail-descargo" class="body" style="max-height:none;"></div></div>
+            <div class="detail-block"><h4>Contenido</h4><div id="detail-contenido" class="body"></div></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeDetailModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-supabase-config">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Base de datos (Supabase)</h2>
+            <button type="button" class="btn btn-outline" onclick="closeSupabaseModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:0.88rem;color:var(--muted);margin-bottom:12px;line-height:1.45;">
+                El programa carga y guarda el JSON desde <strong>Supabase Storage</strong> usando la configuración <code>SUPABASE</code> en el código.
+                Al recargar la página (F5) se conecta automáticamente y descarga la base actualizada.
+            </p>
+            <div id="supabaseConfigSummary" class="supabase-config-summary"></div>
+            <div id="supabaseStatusMsg" class="supabase-status"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeSupabaseModal()">Cerrar</button>
+            <button type="button" class="btn btn-primary" onclick="recargarDesdeSupabase()"><i class="fas fa-sync-alt"></i> Recargar ahora</button>
+            <button type="button" class="btn btn-tool-save-online" onclick="probarConexionSupabase()"><i class="fas fa-link"></i> Probar conexión</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-admin-password">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-header">
+            <h2>Modo administrador</h2>
+            <button type="button" class="btn btn-outline" onclick="cancelAdminPasswordModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="display: block;">
+            <p style="font-size:0.88rem;color:var(--muted);margin-bottom:12px;">Introduzca la contraseña para activar el modo <strong>Administrador</strong> en esta sesión del navegador.</p>
+            <label for="admin-password-input">Contraseña</label>
+            <input type="text" id="admin-password-input" autocomplete="off" placeholder="Contraseña">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="demoteToLocalOnly()">Usar como LOCAL</button>
+            <button type="button" class="btn btn-primary" onclick="submitAdminPassword()">Entrar</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-reportes" role="dialog" aria-modal="true" aria-labelledby="reportes-dialog-title">
+    <div class="modal-report-inner" onclick="event.stopPropagation()">
+        <div class="report-topbar">
+            <h2 id="reportes-dialog-title"><i class="fas fa-chart-pie" style="color:var(--accent)"></i> Reportes de gestión</h2>
+            <button type="button" class="btn btn-outline" onclick="closeReportes()"><i class="fas fa-times"></i> Cerrar</button>
+        </div>
+        <div class="report-nav-bar">
+            <div class="report-tab-strip" role="tablist" aria-label="Secciones de reportes">
+                <button type="button" class="report-tab tab-resumen active" data-report-tab="resumen" onclick="switchReportTab('resumen')"><i class="fas fa-chart-bar"></i><span class="report-tab-label">Resumen General</span></button>
+                <button type="button" class="report-tab tab-por-atender" data-report-tab="por-atender" onclick="switchReportTab('por-atender')"><i class="fas fa-stopwatch"></i><span class="report-tab-label">Por Atender</span></button>
+                <button type="button" class="report-tab tab-atendidas" data-report-tab="atendidas" onclick="switchReportTab('atendidas')"><i class="fas fa-check-square"></i><span class="report-tab-label">Atendidas</span></button>
+                <button type="button" class="report-tab tab-otras" data-report-tab="otras" onclick="switchReportTab('otras')"><i class="fas fa-folder"></i><span class="report-tab-label">Otras Gestiones</span></button>
+                <button type="button" class="report-tab tab-kpis" data-report-tab="kpis" onclick="switchReportTab('kpis')"><i class="fas fa-bullseye"></i><span class="report-tab-label">KPIs Detallados</span></button>
+                <button type="button" class="report-tab tab-descargo" data-report-tab="descargo" onclick="switchReportTab('descargo')"><i class="fas fa-link"></i><span class="report-tab-label">Descargo a Asiento</span></button>
+            </div>
+            <div class="report-date-box" aria-label="Filtro por mes, año o total a la fecha">
+                <div class="report-date-field">
+                    <label for="rep-mes">MES</label>
+                    <select id="rep-mes" title="Mes del reporte">
+                        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option>
+                        <option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option>
+                        <option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                    </select>
+                </div>
+                <div class="report-date-field">
+                    <label for="rep-anio">AÑO</label>
+                    <select id="rep-anio" title="Año del reporte">
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                </div>
+                <button type="button" id="rep-btn-total-fecha" class="btn-report-total-fecha" title="Ver acumulado hasta la fecha de hoy">Total a la fecha</button>
+            </div>
+        </div>
+        <p class="report-filter-hint" id="rep-filter-hint" aria-live="polite"></p>
+        <div class="report-body">
+            <div id="report-pane-resumen" class="report-pane active">
+                <div class="report-title-block">
+                    <h1><i class="fas fa-chart-bar" style="color:var(--accent)"></i> REPORTE DE GESTIÓN DE PROYECTOS</h1>
+                    <p>Resumen General</p>
+                </div>
+                <div class="report-kpi-row">
+                    <div class="report-kpi-card c-blue"><h4>Total de asientos</h4><div class="big" id="rep-kpi-total">0</div><div class="sub"><i class="fas fa-file-alt"></i> Registro matriz</div></div>
+                    <div class="report-kpi-card c-green"><h4>Contratista</h4><div class="big" id="rep-kpi-cont">0</div><div class="sub" id="rep-kpi-cont-p">0%</div></div>
+                    <div class="report-kpi-card c-purple"><h4>Supervisión</h4><div class="big" id="rep-kpi-sup">0</div><div class="sub" id="rep-kpi-sup-p">0%</div></div>
+                    <div class="report-kpi-card c-amber"><h4>Inspector</h4><div class="big" id="rep-kpi-insp">0</div><div class="sub" id="rep-kpi-insp-p">0%</div></div>
+                    <div class="report-kpi-card c-teal"><h4>Atendidas</h4><div class="big" id="rep-kpi-si">0</div><div class="sub" id="rep-kpi-si-p">0%</div></div>
+                    <div class="report-kpi-card c-red"><h4>Por atender</h4><div class="big" id="rep-kpi-no">0</div><div class="sub" id="rep-kpi-no-p">0%</div></div>
+                    <div class="report-kpi-card c-navy"><h4>Otras gestiones</h4><div class="big" id="rep-kpi-na">0</div><div class="sub" id="rep-kpi-na-p">0%</div></div>
+                    <div class="report-kpi-card c-slate"><h4>Total atendidas + por atender</h4><div class="big" id="rep-kpi-sino">0</div><div class="sub" id="rep-kpi-sino-p">0%</div></div>
+                </div>
+                <div class="report-charts-grid">
+                    <div class="report-chart-box"><h3>Distribución por responsable</h3><canvas id="chart-resp" height="220"></canvas></div>
+                    <div class="report-chart-box"><h3>Estado de asientos (general)</h3><canvas id="chart-estado" height="220"></canvas></div>
+                    <div class="report-chart-box"><h3>Porcentajes de atención (SI vs NO)</h3><canvas id="chart-donut" height="220"></canvas></div>
+                    <div class="report-kpi-list"><h3>Indicadores clave</h3><ul id="rep-kpi-indicadores-list"></ul></div>
+                </div>
+                <div class="report-table-wrap"><h3>Resumen por responsable y estado</h3>
+                    <table><thead><tr><th>Responsable</th><th>Atendidas</th><th>Por atender</th><th>Otras gestiones</th><th>Total</th></tr></thead><tbody id="rep-tbody-estado"></tbody></table>
+                </div>
+                <div class="report-table-wrap"><h3>Detalle por responsable</h3>
+                    <table><thead><tr><th>Responsable</th><th>Total asientos</th><th>Contratista</th><th>Supervisión</th><th>Inspector</th><th>Atendidas</th><th>Por atender</th><th>Otras gest.</th><th>Total SI+NO</th><th>% Atendidas</th><th>% Por atender</th></tr></thead><tbody id="rep-tbody-detalle"></tbody></table>
+                </div>
+            </div>
+
+            <div id="report-pane-por-atender" class="report-pane">
+                <div class="report-title-block"><h1><i class="fas fa-stopwatch" style="color:#16a34a"></i> Por atender</h1><p>Listado por responsable (atención NO)</p></div>
+                <div class="report-block"><div class="report-block-head">Contratista (Por Atender)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-por-atender-contratista"></tbody></table></div>
+                <div class="report-block"><div class="report-block-head">Supervisión (Por Atender)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-por-atender-supervision"></tbody></table></div>
+                <div class="report-block"><div class="report-block-head">Inspector (Por Atender)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-por-atender-inspector"></tbody></table></div>
+            </div>
+
+            <div id="report-pane-atendidas" class="report-pane">
+                <div class="report-title-block"><h1><i class="fas fa-check-circle" style="color:#15803d"></i> Atendidas</h1><p>Listado por responsable (atención SI)</p></div>
+                <div class="report-block"><div class="report-block-head">Contratista (Atendido)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-atendidas-contratista"></tbody></table></div>
+                <div class="report-block"><div class="report-block-head">Supervisión (Atendido)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-atendidas-supervision"></tbody></table></div>
+                <div class="report-block"><div class="report-block-head">Inspector (Atendido)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-atendidas-inspector"></tbody></table></div>
+            </div>
+
+            <div id="report-pane-otras" class="report-pane">
+                <div class="report-title-block"><h1><i class="fas fa-folder-open" style="color:#115e59"></i> Otras gestiones</h1><p>Listado por responsable (atención NA)</p></div>
+                <div class="report-block"><div class="report-block-head">Contratista (Otras Gestiones)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-otras-contratista"></tbody></table></div>
+                <div class="report-block"><div class="report-block-head">Supervisión (Otras Gestiones)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-otras-supervision"></tbody></table></div>
+                <div class="report-block"><div class="report-block-head">Inspector (Otras Gestiones)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-otras-inspector"></tbody></table></div>
+            </div>
+
+            <div id="report-pane-kpis" class="report-pane">
+                <div class="report-title-block"><h1><i class="fas fa-bullseye" style="color:#7c3aed"></i> Indicadores de gestión</h1><p>KPIs detallados por tipo y responsable</p></div>
+                <div class="report-section-title">Indicadores de gestión por tipo «Contratista»</div>
+                <table class="report-data-table"><thead><tr><th>Tipo</th><th>Atendidos</th><th>Por atender</th><th>Otras gestiones</th><th>Total</th></tr></thead><tbody id="rep-tbody-kpi-contratista"></tbody></table>
+                <div class="report-section-title">Indicadores de gestión por tipo «Supervisión»</div>
+                <table class="report-data-table"><thead><tr><th>Tipo</th><th>Atendidos</th><th>Por atender</th><th>Otras gestiones</th><th>Total</th></tr></thead><tbody id="rep-tbody-kpi-supervision"></tbody></table>
+                <div class="report-section-title">Indicadores de gestión por tipo «Inspector»</div>
+                <table class="report-data-table"><thead><tr><th>Tipo</th><th>Atendidos</th><th>Por atender</th><th>Otras gestiones</th><th>Total</th></tr></thead><tbody id="rep-tbody-kpi-inspector"></tbody></table>
+            </div>
+
+            <div id="report-pane-descargo" class="report-pane">
+                <div class="report-title-block"><h1><i class="fas fa-link" style="color:#0c4a8c"></i> Descargo a asiento</h1><p>Asientos con descargo registrado</p></div>
+                <div class="report-block"><div class="report-block-head">Contratista (Descargo a Asiento)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-descargo-contratista"></tbody></table></div>
+                <div class="report-block"><div class="report-block-head">Supervisión (Descargo a Asiento)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-descargo-supervision"></tbody></table></div>
+                <div class="report-block"><div class="report-block-head">Inspector (Descargo a Asiento)</div>
+                    <table class="report-data-table"><thead><tr><th>Item</th><th>Nro Asiento</th><th>Asunto</th><th>Fecha</th><th>Tipo</th><th>Link carta</th><th>Link carpeta</th></tr></thead><tbody id="rep-tbody-descargo-inspector"></tbody></table></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /** Configuración Supabase Storage (BD remota). */
+    const SUPABASE = {
+        url: 'https://ubktrbffjrsoubzxjrfz.supabase.co',
+        publishableKey: 'sb_publishable_BqN6s9qDTCSjh1HCuJ_m7Q_knhJjVza',
+        bucket: 'Control-Cartas',
+        filePath: 'BD_ASIENTO_DE_OBRA.json'
+    };
+
+    let asientos = [];
+    /** Metadatos del último JSON importado/exportado (bloque __cuadernoBdArchivo) para guardar en localStorage y en “Base de Datos Actual”. */
+    let persistedBdMeta = null;
+    let editingId = null;
+    let kpiQuick = 'all';
+    let keyFilterTimer = null;
+    const SUSCRITO_SUPERV_AGG = '__SUPERV__';
+    const selectedRowIds = new Set();
+
+    function hasDescargo(a) {
+        return a.descargoAsiento != null && String(a.descargoAsiento).trim() !== '';
+    }
+
+    const TIPO_OPCIONES = [
+        'TÉCNICO', 'INFORMATIVO', 'INGENIERÍA DE DETALLE', 'TDT', 'PLANOS', 'VALORIZACIÓN', 'ANTICIPO', 'SSOMA', 'PGAS', 'PMAR', 'MDIA',
+        'CRONOGRAMA', 'CAMBIO PC', 'DISEÑOS DE MEZCLA', 'MUNICIPALIDAD', 'PETS', 'ROTURA DE PAVIMENTO', 'INTERFERENCIA', 'POSTES METÁLICOS',
+        'OC_LT', 'PROCEDIMIENTOS', 'OTROS'
+    ];
+
+    const MODAL_FIELDS = {
+        id: 'm-id', suscrito: 'm-suscrito', fecha: 'm-fecha', tipo: 'm-tipo', atencion: 'm-atencion',
+        asunto: 'm-asunto', contenido: 'm-contenido', descargoAsiento: 'm-descargo',
+        linkCarta: 'm-link-carta', linkCarpeta: 'm-link-carpeta'
+    };
+
+    function getAtencion(a) {
+        const raw = a.atencion != null ? a.atencion : a.respuesta;
+        const v = raw != null ? String(raw).toUpperCase().trim() : 'NA';
+        if (v === 'SI' || v === 'NO' || v === 'NA') return v;
+        return 'NA';
+    }
+
+    function migrateAsientos(list) {
+        return list.map(item => {
+            const a = { ...item };
+            if (a.atencion == null && a.respuesta != null) a.atencion = getAtencion(a);
+            if (a.atencion == null) a.atencion = 'NA';
+            if (a.descargoAsiento == null) a.descargoAsiento = '';
+            delete a.respuesta;
+            return a;
+        });
+    }
+
+    function needsMigration(list) {
+        if (!Array.isArray(list) || !list.length) return false;
+        return list.some(a =>
+            Object.prototype.hasOwnProperty.call(a, 'respuesta') ||
+            a.atencion == null ||
+            a.descargoAsiento === undefined
+        );
+    }
+
+    function cloneBdArchivoMeta(meta) {
+        if (!meta || typeof meta !== 'object') return null;
+        try {
+            return JSON.parse(JSON.stringify(meta));
+        } catch (e) {
+            return { ...meta };
+        }
+    }
+
+    /**
+     * Fecha/hora mostradas solo a partir de los dígitos del nombre del archivo (p. ej. BD_ASIENTO_DE_OBRA_DDMMYYYY_HHMMSS.json).
+     * No usa hora del PC, lastModified ni metadatos ISO dentro del JSON.
+     */
+    function parseBdTimestampFromFilename(baseName) {
+        const name = String(baseName || '').replace(/^.*[\\/]/, '').trim();
+        if (!name) return null;
+        let m = name.match(/BD_ASIENTO_DE_OBRA[_-]?(\d{2})(\d{2})(\d{4})[_-](\d{2})(\d{2})(\d{2})/i);
+        if (m) {
+            const dd = parseInt(m[1], 10);
+            const mo = parseInt(m[2], 10);
+            const y = parseInt(m[3], 10);
+            const hh = parseInt(m[4], 10);
+            const mi = parseInt(m[5], 10);
+            const ss = parseInt(m[6], 10);
+            if (mo < 1 || mo > 12 || dd < 1 || dd > 31 || hh > 23 || mi > 59 || ss > 59) return null;
+            const d = new Date(y, mo - 1, dd, hh, mi, ss);
+            return Number.isNaN(d.getTime()) ? null : d.getTime();
+        }
+        m = name.match(/Asientos_Obra_(\d{4})-(\d{2})-(\d{2})/i);
+        if (m) {
+            const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10), 0, 0, 0);
+            return Number.isNaN(d.getTime()) ? null : d.getTime();
+        }
+        m = name.match(/(\d{4})-(\d{2})-(\d{2})[T_\s-](\d{2})(\d{2})(\d{2})/);
+        if (m) {
+            const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10),
+                parseInt(m[4], 10), parseInt(m[5], 10), parseInt(m[6], 10));
+            return Number.isNaN(d.getTime()) ? null : d.getTime();
+        }
+        m = name.match(/(\d{4})(\d{2})(\d{2})[_-](\d{2})(\d{2})(\d{2})/);
+        if (m) {
+            const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10),
+                parseInt(m[4], 10), parseInt(m[5], 10), parseInt(m[6], 10));
+            return Number.isNaN(d.getTime()) ? null : d.getTime();
+        }
+        return null;
+    }
+
+    function setBdSourceFilename(baseName) {
+        const s = String(baseName || '').trim().replace(/^.*[\\/]/, '');
+        if (!s) {
+            try { localStorage.removeItem(LS_BD_IMPORT_FILENAME); } catch (e) { /* ignore */ }
+            refreshBdLoadedDisplay();
+            return;
+        }
+        try {
+            localStorage.setItem(LS_BD_IMPORT_FILENAME, s);
+        } catch (e) { /* ignore */ }
+        refreshBdLoadedDisplay();
+    }
+
+    /**
+     * Acepta un arreglo de asientos o un objeto { __cuadernoBdArchivo, asientos } generado al guardar/exportar la BD.
+     */
+    function normalizeImportedBdJson(parsed) {
+        let metaRaw = null;
+        let list = null;
+        const META_ROOT_KEYS = ['__cuadernoBdArchivo', '__bdArchivo', 'metaBaseDatos'];
+        if (parsed != null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            for (let ri = 0; ri < META_ROOT_KEYS.length; ri++) {
+                const block = parsed[META_ROOT_KEYS[ri]];
+                if (block != null && typeof block === 'object') {
+                    metaRaw = cloneBdArchivoMeta(block);
+                    break;
+                }
+            }
+            if (Array.isArray(parsed.asientos)) list = parsed.asientos;
+            else if (Array.isArray(parsed.data)) list = parsed.data;
+        }
+        if (Array.isArray(parsed)) {
+            list = parsed;
+        }
+        if (!Array.isArray(list)) {
+            return { ok: false, message: 'El JSON debe ser un arreglo de asientos o un objeto con la propiedad "asientos".' };
+        }
+        return { ok: true, list, metaRaw };
+    }
+
+    function fillTipoSelects() {
+        const fTipo = document.getElementById('f-tipo');
+        fTipo.innerHTML = '<option value="">Todos</option>' + TIPO_OPCIONES.map(t => `<option value="${escapeAttr(t)}">${escapeHtml(t)}</option>`).join('');
+        const mTipo = document.getElementById('m-tipo');
+        mTipo.innerHTML = '<option value="">— Seleccionar —</option>' + TIPO_OPCIONES.map(t => `<option value="${escapeAttr(t)}">${escapeHtml(t)}</option>`).join('');
+    }
+
+    function ensureTipoInModal(tipoVal) {
+        const mTipo = document.getElementById('m-tipo');
+        if (!tipoVal) return;
+        const exists = [...mTipo.options].some(o => o.value === tipoVal);
+        if (!exists) {
+            const opt = document.createElement('option');
+            opt.value = tipoVal;
+            opt.textContent = tipoVal + ' (otro)';
+            mTipo.appendChild(opt);
+        }
+        mTipo.value = tipoVal;
+    }
+
+    let reportDataLabelsRegistered = false;
+    function registerReportChartPlugins() {
+        if (reportDataLabelsRegistered || typeof Chart === 'undefined' || typeof ChartDataLabels === 'undefined') return;
+        Chart.register(ChartDataLabels);
+        reportDataLabelsRegistered = true;
+    }
+
+    function reportChartsUseDataLabels() {
+        return typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined';
+    }
+
+    const LS_USUARIO = 'cuaderno_usuario_modo';
+    /** Solo el nombre del archivo de BD importado/exportado (p. ej. BD_ASIENTO_DE_OBRA_12052026_143052.json) para la etiqueta de fecha/hora. */
+    const LS_BD_IMPORT_FILENAME = 'cuaderno_bd_nombre_archivo';
+    const SS_ADMIN_OK = 'cuaderno_admin_ok';
+    const USUARIO_LOCAL = 'LOCAL';
+    const USUARIO_ADMIN = 'Administrador';
+    const ADMIN_PASSWORD = 'deybis25**';
+    let usuarioModo = USUARIO_LOCAL;
+    let ldClickCount = 0;
+    let ldClickTimer = null;
+    let bdProgDepth = 0;
+    let bdProgIntervalId = null;
+    let bdProgFakeVal = 0;
+
+    function isUsuarioAdministrador() {
+        return usuarioModo === USUARIO_ADMIN;
+    }
+
+    function _supabaseConfigOk() {
+        return !!(SUPABASE && SUPABASE.url && SUPABASE.publishableKey && SUPABASE.bucket && SUPABASE.filePath);
+    }
+
+    function _supabaseKeyPreview() {
+        const k = String(SUPABASE.publishableKey || '');
+        if (k.length <= 8) return k ? '••••' : '(no configurada)';
+        return `${k.slice(0, 6)}…${k.slice(-4)}`;
+    }
+
+    function _encodeStorageObjectPath(filePath) {
+        return String(filePath).split('/').filter(Boolean).map(encodeURIComponent).join('/');
+    }
+
+    function _supabaseStorageObjectUrl() {
+        const base = String(SUPABASE.url || '').replace(/\/$/, '');
+        const bucketEnc = encodeURIComponent(SUPABASE.bucket);
+        const pathEnc = _encodeStorageObjectPath(SUPABASE.filePath);
+        return `${base}/storage/v1/object/${bucketEnc}/${pathEnc}`;
+    }
+
+    function _bdTimestampedFilename(date) {
+        const d = date || new Date();
+        const pad = n => String(n).padStart(2, '0');
+        return `BD_ASIENTO_DE_OBRA_${pad(d.getDate())}${pad(d.getMonth() + 1)}${d.getFullYear()}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.json`;
+    }
+
+    function _buildPayloadForSupabase() {
+        const fname = _bdTimestampedFilename();
+        persistedBdMeta = { nombreArchivoBd: fname };
+        return { __cuadernoBdArchivo: persistedBdMeta, asientos };
+    }
+
+    function applyUsuarioUI() {
+        const tb = document.getElementById('main-toolbar');
+        const btn = document.getElementById('btn-toggle-usuario');
+        const ld = document.getElementById('ld-avatar');
+        if (tb) {
+            tb.classList.toggle('is-admin', isUsuarioAdministrador());
+            tb.classList.toggle('is-local', !isUsuarioAdministrador());
+        }
+        if (btn) {
+            btn.textContent = isUsuarioAdministrador() ? 'Usuario: Administrador' : 'Usuario: LOCAL';
+            btn.setAttribute('aria-pressed', isUsuarioAdministrador() ? 'true' : 'false');
+        }
+        if (ld) {
+            ld.classList.toggle('ld-avatar--active', isUsuarioAdministrador());
+            ld.removeAttribute('title');
+        }
+    }
+
+    function toggleUsuarioMode() {
+        if (isUsuarioAdministrador()) {
+            usuarioModo = USUARIO_LOCAL;
+            localStorage.setItem(LS_USUARIO, USUARIO_LOCAL);
+            sessionStorage.removeItem(SS_ADMIN_OK);
+            applyUsuarioUI();
+            return;
+        }
+        openAdminPasswordModal();
+    }
+
+    function openAdminPasswordModal() {
+        const inp = document.getElementById('admin-password-input');
+        if (inp) inp.value = '';
+        document.getElementById('modal-admin-password').classList.add('active');
+        setTimeout(() => { if (inp) inp.focus(); }, 100);
+    }
+
+    function closeAdminPasswordModal() {
+        document.getElementById('modal-admin-password').classList.remove('active');
+    }
+
+    function cancelAdminPasswordModal() {
+        closeAdminPasswordModal();
+    }
+
+    function demoteToLocalOnly() {
+        usuarioModo = USUARIO_LOCAL;
+        localStorage.setItem(LS_USUARIO, USUARIO_LOCAL);
+        sessionStorage.removeItem(SS_ADMIN_OK);
+        closeAdminPasswordModal();
+        applyUsuarioUI();
+    }
+
+    async function submitAdminPassword() {
+        const inp = document.getElementById('admin-password-input');
+        const pw = inp ? inp.value : '';
+        if (pw !== ADMIN_PASSWORD) {
+            alert('Contraseña incorrecta');
+            return;
+        }
+        sessionStorage.setItem(SS_ADMIN_OK, '1');
+        localStorage.setItem(LS_USUARIO, USUARIO_ADMIN);
+        usuarioModo = USUARIO_ADMIN;
+        if (inp) inp.value = '';
+        closeAdminPasswordModal();
+        applyUsuarioUI();
+        fillTipoSelects();
+        refreshView();
+        updateKPIs();
+    }
+
+    function refreshBdLoadedDisplay() {
+        const el = document.getElementById('bd-loaded-display');
+        if (!el) return;
+        let fn = '';
+        try {
+            fn = String(localStorage.getItem(LS_BD_IMPORT_FILENAME) || '').trim();
+        } catch (e) {
+            fn = '';
+        }
+        const ms = parseBdTimestampFromFilename(fn);
+        if (ms == null || Number.isNaN(ms)) {
+            el.textContent = '—';
+            return;
+        }
+        const d = new Date(ms);
+        if (Number.isNaN(d.getTime())) {
+            el.textContent = '—';
+            return;
+        }
+        const pad = n => String(n).padStart(2, '0');
+        const dia = pad(d.getDate());
+        const mes = pad(d.getMonth() + 1);
+        const anio = String(d.getFullYear());
+        const hora = pad(d.getHours());
+        const minuto = pad(d.getMinutes());
+        const segundo = pad(d.getSeconds());
+        el.innerHTML =
+            '<span class="bd-ts-row">' +
+            `<span class="bd-ts-date">${dia}-${mes}-${anio}</span>` +
+            '<span class="bd-ts-slash"> / </span>' +
+            `<span class="bd-ts-time">${hora}:${minuto}:${segundo}</span>` +
+            '</span>';
+    }
+
+    function _setSupabaseStatus(msg, kind) {
+        const el = document.getElementById('supabaseStatusMsg');
+        if (!el) return;
+        el.className = 'supabase-status';
+        if (!msg) { el.textContent = ''; return; }
+        el.textContent = msg;
+        if (kind === 'ok') el.classList.add('is-ok');
+        else if (kind === 'warn') el.classList.add('is-warn');
+        else if (kind === 'err') el.classList.add('is-err');
+        else el.classList.add('is-info');
+    }
+
+    function _renderSupabaseConfigSummary() {
+        const el = document.getElementById('supabaseConfigSummary');
+        if (!el) return;
+        if (!_supabaseConfigOk()) {
+            el.innerHTML = '<i>Configuración SUPABASE incompleta: revise url, publishableKey, bucket y filePath.</i>';
+            return;
+        }
+        const base = String(SUPABASE.url).replace(/\/$/, '');
+        el.innerHTML =
+            '<b>Proyecto:</b> ' + escapeHtml(base) + '<br>' +
+            '<b>Clave publicable:</b> ' + escapeHtml(_supabaseKeyPreview()) + '<br>' +
+            '<b>Bucket:</b> ' + escapeHtml(SUPABASE.bucket) + '<br>' +
+            '<b>Archivo:</b> ' + escapeHtml(SUPABASE.filePath);
+    }
+
+    function openSupabaseModal() {
+        if (!isUsuarioAdministrador()) {
+            alert('Esta función está disponible solo en modo Administrador.');
+            return;
+        }
+        _renderSupabaseConfigSummary();
+        _setSupabaseStatus('', '');
+        const m = document.getElementById('modal-supabase-config');
+        if (m) m.classList.add('active');
+    }
+
+    function closeSupabaseModal() {
+        const m = document.getElementById('modal-supabase-config');
+        if (m) m.classList.remove('active');
+    }
+
+    function _applyImportedBdFromParsed(parsed) {
+        const norm = normalizeImportedBdJson(parsed);
+        if (!norm.ok) return { ok: false, error: norm.message };
+        persistedBdMeta = norm.metaRaw != null ? norm.metaRaw : null;
+        if (needsMigration(norm.list)) asientos = migrateAsientos(norm.list);
+        else asientos = norm.list;
+        saveToLocal();
+        const fn = (norm.metaRaw && norm.metaRaw.nombreArchivoBd)
+            ? norm.metaRaw.nombreArchivoBd
+            : (SUPABASE.filePath.split('/').filter(Boolean).pop() || '');
+        setBdSourceFilename(fn);
+        return { ok: true, count: asientos.length };
+    }
+
+    async function _fetchSupabasePayload() {
+        const base = String(SUPABASE.url || '').replace(/\/$/, '');
+        const bucketEnc = encodeURIComponent(SUPABASE.bucket);
+        const pathEnc = _encodeStorageObjectPath(SUPABASE.filePath);
+        const attempts = [
+            {
+                url: `${base}/storage/v1/object/${bucketEnc}/${pathEnc}`,
+                headers: {
+                    apikey: SUPABASE.publishableKey,
+                    Authorization: `Bearer ${SUPABASE.publishableKey}`
+                }
+            },
+            {
+                url: `${base}/storage/v1/object/public/${bucketEnc}/${pathEnc}`,
+                headers: {}
+            }
+        ];
+        let lastErr = '';
+        for (const { url, headers } of attempts) {
+            try {
+                const resp = await fetch(url, { method: 'GET', mode: 'cors', cache: 'no-store', headers });
+                if (!resp.ok) {
+                    lastErr = `HTTP ${resp.status}`;
+                    continue;
+                }
+                const text = await resp.text();
+                if (!text || text.length < 5) {
+                    lastErr = 'Respuesta vacía';
+                    continue;
+                }
+                if (text.trim().startsWith('<')) {
+                    lastErr = 'El servidor devolvió HTML en lugar de JSON.';
+                    continue;
+                }
+                let payload = null;
+                try { payload = JSON.parse(text); }
+                catch (_) { lastErr = 'JSON inválido.'; continue; }
+                return { payload, error: null };
+            } catch (err) {
+                lastErr = err.message || 'Error de red';
+            }
+        }
+        return { payload: null, error: lastErr || 'No se pudo descargar el archivo desde Supabase.' };
+    }
+
+    async function loadAsientosFromSupabase(opts) {
+        opts = opts || {};
+        if (!_supabaseConfigOk()) {
+            return { ok: false, error: 'Configuración SUPABASE incompleta en el código.' };
+        }
+        bdProgressBegin();
+        try {
+            const { payload, error } = await _fetchSupabasePayload();
+            if (!payload) {
+                return { ok: false, error: error || 'No se pudo descargar la BD.' };
+            }
+            const applied = _applyImportedBdFromParsed(payload);
+            if (!applied.ok) return { ok: false, error: applied.error };
+            return { ok: true, count: applied.count, fileName: SUPABASE.filePath.split('/').filter(Boolean).pop() || 'BD.json' };
+        } finally {
+            bdProgressFinish();
+        }
+    }
+
+    async function tryLoadFromSupabaseIfConfigured() {
+        if (!_supabaseConfigOk()) return false;
+        const result = await loadAsientosFromSupabase({ silent: true });
+        if (!result.ok) {
+            console.warn('[Supabase] No se pudo cargar automáticamente:', result.error);
+            return false;
+        }
+        console.info(`[Supabase] BD cargada | ${result.fileName} | ${result.count} asientos`);
+        return true;
+    }
+
+    async function guardarBDOnline() {
+        if (!isUsuarioAdministrador()) {
+            alert('Solo el Administrador puede guardar la base de datos en Supabase.');
+            return;
+        }
+        if (!_supabaseConfigOk()) {
+            alert('Revise la configuración SUPABASE en el código (url, clave, bucket, filePath).');
+            return;
+        }
+        const btn = document.querySelector('.btn-tool-save-online');
+        if (btn) btn.disabled = true;
+        try {
+            const payload = _buildPayloadForSupabase();
+            const json = JSON.stringify(payload, null, 2);
+            const resp = await fetch(_supabaseStorageObjectUrl(), {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-store',
+                headers: {
+                    apikey: SUPABASE.publishableKey,
+                    Authorization: `Bearer ${SUPABASE.publishableKey}`,
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'x-upsert': 'true'
+                },
+                body: json
+            });
+            if (!resp.ok) {
+                let msg = `HTTP ${resp.status}`;
+                try {
+                    const errBody = await resp.json();
+                    if (errBody && errBody.message) msg = errBody.message;
+                    else if (errBody && typeof errBody.error === 'string') msg = errBody.error;
+                } catch (_) {}
+                alert(`No se pudo subir la BD a Supabase.\n${msg}\nVerifique políticas de Storage (insert/update) para el bucket.`);
+                return;
+            }
+            saveToLocal();
+            const displayName = persistedBdMeta && persistedBdMeta.nombreArchivoBd
+                ? persistedBdMeta.nombreArchivoBd
+                : _bdTimestampedFilename();
+            setBdSourceFilename(displayName);
+            fillTipoSelects();
+            refreshView();
+            updateKPIs();
+            alert(`GuardarBD Online completado.\nArchivo: ${SUPABASE.filePath}\nAsientos: ${asientos.length}`);
+        } catch (err) {
+            if (err && err.name !== 'AbortError') alert('Error al guardar en Supabase: ' + (err.message || err));
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async function recargarDesdeSupabase() {
+        if (!_supabaseConfigOk()) {
+            _setSupabaseStatus('Revise la configuración SUPABASE en el código.', 'warn');
+            return;
+        }
+        _setSupabaseStatus('Recargando desde Supabase...', 'info');
+        const result = await loadAsientosFromSupabase({ silent: false });
+        if (result.ok) {
+            fillTipoSelects();
+            refreshView();
+            updateKPIs();
+            _setSupabaseStatus(`Base de datos recargada. Archivo: ${result.fileName} | Asientos: ${result.count}`, 'ok');
+        } else {
+            _setSupabaseStatus(result.error || 'No se pudo recargar.', 'err');
+        }
+    }
+
+    async function probarConexionSupabase() {
+        if (!_supabaseConfigOk()) {
+            _setSupabaseStatus('Configuración SUPABASE incompleta.', 'warn');
+            return;
+        }
+        _setSupabaseStatus('Probando descarga desde Supabase...', 'info');
+        const result = await loadAsientosFromSupabase({ silent: false });
+        if (result.ok) {
+            fillTipoSelects();
+            refreshView();
+            updateKPIs();
+            _setSupabaseStatus(`Conexión correcta. Archivo: ${result.fileName} | Asientos: ${result.count}`, 'ok');
+        } else {
+            _setSupabaseStatus(result.error || 'Fallo al obtener el JSON.', 'err');
+        }
+    }
+
+    function bdProgressBegin() {
+        bdProgDepth += 1;
+        if (bdProgDepth !== 1) return;
+        const wrap = document.getElementById('bd-load-progress');
+        const inner = document.getElementById('bd-load-bar-inner');
+        const pctEl = document.getElementById('bd-load-pct');
+        const bar = wrap ? wrap.querySelector('[role="progressbar"]') : null;
+        if (!wrap || !inner || !pctEl) return;
+        wrap.classList.remove('bd-load-progress--hidden');
+        wrap.setAttribute('aria-hidden', 'false');
+        bdProgFakeVal = 0;
+        inner.style.width = '0%';
+        pctEl.textContent = '0%';
+        if (bar) bar.setAttribute('aria-valuenow', '0');
+        if (bdProgIntervalId) clearInterval(bdProgIntervalId);
+        bdProgIntervalId = setInterval(() => {
+            if (bdProgFakeVal < 90) {
+                bdProgFakeVal += Math.random() * 9 + 2.5;
+                if (bdProgFakeVal > 90) bdProgFakeVal = 90;
+                const p = Math.round(bdProgFakeVal);
+                inner.style.width = p + '%';
+                pctEl.textContent = p + '%';
+                if (bar) bar.setAttribute('aria-valuenow', String(p));
+            }
+        }, 160);
+    }
+
+    function bdProgressFinish() {
+        bdProgDepth = Math.max(0, bdProgDepth - 1);
+        if (bdProgDepth > 0) return;
+        if (bdProgIntervalId) {
+            clearInterval(bdProgIntervalId);
+            bdProgIntervalId = null;
+        }
+        const wrap = document.getElementById('bd-load-progress');
+        const inner = document.getElementById('bd-load-bar-inner');
+        const pctEl = document.getElementById('bd-load-pct');
+        const bar = wrap ? wrap.querySelector('[role="progressbar"]') : null;
+        if (inner) inner.style.width = '100%';
+        if (pctEl) pctEl.textContent = '100%';
+        if (bar) bar.setAttribute('aria-valuenow', '100');
+        setTimeout(() => {
+            if (wrap) {
+                wrap.classList.add('bd-load-progress--hidden');
+                wrap.setAttribute('aria-hidden', 'true');
+            }
+            if (inner) inner.style.width = '0%';
+            if (pctEl) pctEl.textContent = '0%';
+            if (bar) bar.setAttribute('aria-valuenow', '0');
+        }, 420);
+    }
+    function bindLdAvatarTripleClick() {
+        const ld = document.getElementById('ld-avatar');
+        if (!ld) return;
+        ld.addEventListener('click', () => {
+            if (!isUsuarioAdministrador()) return;
+            ldClickCount += 1;
+            if (ldClickTimer) clearTimeout(ldClickTimer);
+            ldClickTimer = setTimeout(() => { ldClickCount = 0; }, 550);
+            if (ldClickCount >= 3) {
+                ldClickCount = 0;
+                clearTimeout(ldClickTimer);
+                openSupabaseModal();
+            }
+        });
+    }
+
+    (function bindSupabaseModalBackdrop() {
+        const m = document.getElementById('modal-supabase-config');
+        if (m) m.addEventListener('click', e => { if (e.target.id === 'modal-supabase-config') closeSupabaseModal(); });
+    })();
+
+    (function ensureSupabaseModalHiddenAtStartup() {
+        const run = () => closeSupabaseModal();
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
+        else run();
+    })();
+
+    (function bindAdminPasswordModal() {
+        const m = document.getElementById('modal-admin-password');
+        if (m) m.addEventListener('click', e => { if (e.target.id === 'modal-admin-password') cancelAdminPasswordModal(); });
+        const inp = document.getElementById('admin-password-input');
+        if (inp) {
+            inp.addEventListener('keydown', e => {
+                if (e.key === 'Enter') { e.preventDefault(); submitAdminPassword(); }
+            });
+        }
+    })();
+
+    async function init() {
+        closeSupabaseModal();
+        registerReportChartPlugins();
+        sessionStorage.removeItem(SS_ADMIN_OK);
+        localStorage.setItem(LS_USUARIO, USUARIO_LOCAL);
+        usuarioModo = USUARIO_LOCAL;
+        applyUsuarioUI();
+        bindLdAvatarTripleClick();
+        refreshBdLoadedDisplay();
+
+        let supabaseOk = false;
+        try {
+            supabaseOk = await tryLoadFromSupabaseIfConfigured();
+        } catch (err) {
+            console.error('Supabase BD:', err);
+        }
+        if (!supabaseOk) {
+            const saved = localStorage.getItem('asientos_obra_db_v2');
+            if (saved) {
+                try {
+                    const raw = JSON.parse(saved);
+                    const norm = normalizeImportedBdJson(raw);
+                    if (norm.ok) {
+                        persistedBdMeta = norm.metaRaw != null ? norm.metaRaw : null;
+                        const list = norm.list;
+                        if (needsMigration(list)) {
+                            asientos = migrateAsientos(list);
+                            saveToLocal();
+                        } else {
+                            asientos = list;
+                        }
+                        if (norm.metaRaw && norm.metaRaw.nombreArchivoBd) {
+                            setBdSourceFilename(norm.metaRaw.nombreArchivoBd);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Local BD:', e);
+                }
+            }
+        }
+        fillTipoSelects();
+        bindKpiFilters();
+        bindAutoFilters();
+        bindReportDateFiltersOnce();
+        initReportFilterDefaults();
+        updateReportFilterHint();
+        refreshView();
+        updateKPIs();
+    }
+
+    function applyKpiToForm() {
+        const sus = document.getElementById('f-suscrito');
+        const att = document.getElementById('f-atencion');
+        switch (kpiQuick) {
+            case 'all':
+                sus.value = '';
+                att.value = '';
+                break;
+            case 'contratista':
+                att.value = '';
+                sus.value = 'Contratista';
+                break;
+            case 'supervision':
+                att.value = '';
+                sus.value = SUSCRITO_SUPERV_AGG;
+                break;
+            case 'si':
+                sus.value = '';
+                att.value = 'SI';
+                break;
+            case 'no':
+                sus.value = '';
+                att.value = 'NO';
+                break;
+            case 'na':
+                sus.value = '';
+                att.value = 'NA';
+                break;
+        }
+    }
+
+    function syncKpiFromFormSelects() {
+        const sus = document.getElementById('f-suscrito').value;
+        const att = document.getElementById('f-atencion').value;
+        if (att === 'SI') kpiQuick = 'si';
+        else if (att === 'NO') kpiQuick = 'no';
+        else if (att === 'NA') kpiQuick = 'na';
+        else if (sus === 'Contratista') kpiQuick = 'contratista';
+        else if (sus === SUSCRITO_SUPERV_AGG) kpiQuick = 'supervision';
+        else kpiQuick = 'all';
+        updateKpiActiveState();
+    }
+
+    function bindKpiFilters() {
+        document.querySelectorAll('[data-kpi]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                kpiQuick = btn.getAttribute('data-kpi');
+                applyKpiToForm();
+                updateKpiActiveState();
+                refreshView();
+            });
+        });
+    }
+
+    function bindAutoFilters() {
+        const run = () => { syncKpiFromFormSelects(); refreshView(); };
+        const debKey = () => {
+            clearTimeout(keyFilterTimer);
+            keyFilterTimer = setTimeout(() => refreshView(), 220);
+        };
+        document.getElementById('f-key').addEventListener('input', debKey);
+        document.getElementById('f-suscrito').addEventListener('change', run);
+        document.getElementById('f-atencion').addEventListener('change', run);
+        ['f-tipo', 'f-descargo', 'f-date-from', 'f-date-to'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => refreshView());
+        });
+    }
+
+    function updateKpiActiveState() {
+        document.querySelectorAll('[data-kpi]').forEach(btn => {
+            btn.classList.toggle('active-filter', btn.getAttribute('data-kpi') === kpiQuick);
+        });
+    }
+
+    function applyKpiQuick(arr) {
+        switch (kpiQuick) {
+            case 'contratista': return arr.filter(a => a.suscrito === 'Contratista');
+            case 'supervision': return arr.filter(a => a.suscrito !== 'Contratista');
+            case 'si': return arr.filter(a => getAtencion(a) === 'SI');
+            case 'no': return arr.filter(a => getAtencion(a) === 'NO');
+            case 'na': return arr.filter(a => getAtencion(a) === 'NA');
+            default: return arr;
+        }
+    }
+
+    function applyFormFilters(arr) {
+        let f = [...arr];
+        const key = document.getElementById('f-key').value.trim().toLowerCase();
+        const suscrito = document.getElementById('f-suscrito').value;
+        const tipo = document.getElementById('f-tipo').value;
+        const atBar = document.getElementById('f-atencion').value;
+        const descF = document.getElementById('f-descargo').value;
+        const dFrom = document.getElementById('f-date-from').value;
+        const dTo = document.getElementById('f-date-to').value;
+
+        if (key) {
+            f = f.filter(a =>
+                (a.asunto && a.asunto.toLowerCase().includes(key)) ||
+                (a.contenido && String(a.contenido).toLowerCase().includes(key))
+            );
+        }
+        if (kpiQuick !== 'contratista' && kpiQuick !== 'supervision' && suscrito) {
+            if (suscrito === SUSCRITO_SUPERV_AGG) f = f.filter(a => a.suscrito !== 'Contratista');
+            else f = f.filter(a => a.suscrito === suscrito);
+        }
+        if (tipo) f = f.filter(a => (a.tipo || '') === tipo);
+        if (!['si', 'no', 'na'].includes(kpiQuick) && atBar) {
+            f = f.filter(a => getAtencion(a) === atBar);
+        }
+        if (descF === 'SI') f = f.filter(a => hasDescargo(a));
+        if (descF === 'NO') f = f.filter(a => !hasDescargo(a));
+        if (dFrom) f = f.filter(a => a.fecha >= dFrom);
+        if (dTo) f = f.filter(a => a.fecha <= dTo);
+        return f;
+    }
+
+    function refreshView() {
+        let f = applyKpiQuick(asientos);
+        f = applyFormFilters(f);
+        renderTable(f);
+    }
+
+    function updateKPIs() {
+        document.getElementById('kpi-total').textContent = asientos.length;
+        document.getElementById('kpi-contratista').textContent = asientos.filter(a => a.suscrito === 'Contratista').length;
+        document.getElementById('kpi-super').textContent = asientos.filter(a => a.suscrito !== 'Contratista').length;
+        document.getElementById('kpi-si').textContent = asientos.filter(a => getAtencion(a) === 'SI').length;
+        document.getElementById('kpi-pend').textContent = asientos.filter(a => getAtencion(a) === 'NO').length;
+        const elNa = document.getElementById('kpi-na');
+        if (elNa) elNa.textContent = asientos.filter(a => getAtencion(a) === 'NA').length;
+        updateKpiActiveState();
+        refreshReportesIfOpen();
+    }
+
+    function linkIconCell(url, kind) {
+        if (!url || !String(url).trim()) return '<span class="na">—</span>';
+        const u = String(url).trim();
+        const safe = escapeAttr(u);
+        const icon = kind === 'carta' ? 'fa-paperclip' : 'fa-folder';
+        const label = kind === 'carta' ? 'Abrir carta' : 'Abrir carpeta';
+        return `<a class="link-icon-btn" href="${safe}" target="_blank" rel="noopener noreferrer" title="${escapeAttr(label)}" aria-label="${escapeAttr(label)}"><i class="fas ${icon}" aria-hidden="true"></i></a>`;
+    }
+
+    function getHighlightWords() {
+        const key = document.getElementById('f-key').value.trim().toLowerCase();
+        if (!key) return [];
+        return [...new Set(key.split(/\s+/).filter(Boolean))].sort((a, b) => b.length - a.length);
+    }
+
+    function escapeRegExp(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function highlightMatches(raw, words) {
+        const esc = escapeHtml(raw == null ? '' : String(raw));
+        if (!words.length) return esc;
+        const pattern = words.map(escapeRegExp).filter(Boolean).join('|');
+        if (!pattern) return esc;
+        const re = new RegExp('(' + pattern + ')', 'gi');
+        return esc.replace(re, '<mark class="hl-keyword">$1</mark>');
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        const visibleIds = new Set(data.map(a => a.id));
+        [...selectedRowIds].forEach(id => { if (!visibleIds.has(id)) selectedRowIds.delete(id); });
+
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:36px;color:var(--muted);">Sin registros para mostrar con los filtros actuales.</td></tr>';
+            return;
+        }
+
+        const hlWords = getHighlightWords();
+
+        const syncRowSelectionClasses = () => {
+            tbody.querySelectorAll('tr.data-row').forEach(r => {
+                const rid = parseInt(r.dataset.rowId, 10);
+                r.classList.toggle('row-selected', selectedRowIds.has(rid));
+            });
+        };
+
+        data.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.className = 'data-row';
+            tr.dataset.rowId = String(a.id);
+            if (selectedRowIds.has(a.id)) tr.classList.add('row-selected');
+
+            const att = getAtencion(a);
+            const rClass = att === 'SI' ? 'r-si' : att === 'NO' ? 'r-no' : 'r-na';
+            const rawCont = a.contenido != null ? String(a.contenido) : '';
+            const contDisplay = rawCont.trim() ? highlightMatches(rawCont, hlWords) : '<span class="na">—</span>';
+            const needsToggle = rawCont.length > 160 || rawCont.split('\n').length > 3;
+            const desc = (a.descargoAsiento != null && String(a.descargoAsiento).trim()) ? escapeHtml(String(a.descargoAsiento).trim()) : '<span class="na">—</span>';
+            const asuntoHtml = highlightMatches(a.asunto || '', hlWords);
+
+            tr.innerHTML = `
+                <td class="num" style="font-weight:700;">${a.id}</td>
+                <td>${escapeHtml(a.suscrito)}</td>
+                <td class="fecha">${formatDate(a.fecha)}</td>
+                <td class="cell-asunto">${asuntoHtml}</td>
+                <td>
+                    <div class="cell-contenido" id="cc-${a.id}">${contDisplay}</div>
+                    ${needsToggle ? `<button type="button" class="btn-text" data-cc="${a.id}" onclick="event.stopPropagation(); toggleContenidoExpand(${a.id}, this)"><i class="fas fa-chevron-down"></i> Expandir / contraer</button>` : ''}
+                    ${rawCont.trim() ? `<button type="button" class="btn-text" onclick="event.stopPropagation(); viewDetail(${a.id})"><i class="fas fa-external-link-alt"></i> Ver completo</button>` : ''}
+                </td>
+                <td>${escapeHtml(a.tipo || '')}</td>
+                <td><span class="resp-badge ${rClass}">${escapeHtml(att)}</span></td>
+                <td>${desc}</td>
+                <td class="link-cell">${linkIconCell(a.linkCarta, 'carta')}</td>
+                <td class="link-cell">${linkIconCell(a.linkCarpeta, 'carpeta')}</td>
+                <td class="actions">
+                    <button type="button" class="act-btn" onclick="event.stopPropagation(); editAsiento(${a.id})" title="Editar"><i class="fas fa-pen"></i></button>
+                    <button type="button" class="act-btn del" onclick="event.stopPropagation(); deleteAsiento(${a.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+                </td>`;
+
+            tr.addEventListener('click', e => {
+                if (e.target.closest('button, a, .link-icon-btn, .btn-text, .act-btn')) return;
+                if (selectedRowIds.has(a.id)) selectedRowIds.delete(a.id);
+                else selectedRowIds.add(a.id);
+                syncRowSelectionClasses();
+            });
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    function toggleContenidoExpand(id, btn) {
+        const el = document.getElementById('cc-' + id);
+        if (!el) return;
+        el.classList.toggle('expanded');
+        const expanded = el.classList.contains('expanded');
+        if (btn) btn.innerHTML = expanded ? '<i class="fas fa-chevron-up"></i> Contraer vista' : '<i class="fas fa-chevron-down"></i> Expandir / contraer';
+    }
+
+    function openModal(id = null) {
+        editingId = id;
+        document.getElementById('modal').classList.add('active');
+        document.getElementById('modal-title').textContent = id ? 'Editar Asiento' : 'Registrar Asiento';
+        if (!id) {
+            document.getElementById('m-id').value = asientos.length ? Math.max(...asientos.map(a => a.id)) + 1 : 1;
+            document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
+            ['m-asunto', 'm-contenido', 'm-descargo', 'm-link-carta', 'm-link-carpeta'].forEach(i => { document.getElementById(i).value = ''; });
+            document.getElementById('m-tipo').value = '';
+            document.getElementById('m-suscrito').value = 'Contratista';
+            document.getElementById('m-atencion').value = 'NA';
+        } else {
+            const a = asientos.find(x => x.id === id);
+            if (!a) return;
+            ensureTipoInModal(a.tipo || '');
+            Object.entries(MODAL_FIELDS).forEach(([key, elId]) => {
+                if (key === 'tipo') return;
+                const el = document.getElementById(elId);
+                if (el) el.value = a[key] != null ? a[key] : '';
+            });
+            document.getElementById('m-atencion').value = getAtencion(a);
+        }
+    }
+
+    function closeModal() { document.getElementById('modal').classList.remove('active'); editingId = null; }
+
+    function closeDetailModal() { document.getElementById('modal-detail').classList.remove('active'); }
+
+    function saveAsiento() {
+        const id = parseInt(document.getElementById('m-id').value, 10);
+        const data = {
+            id,
+            suscrito: document.getElementById('m-suscrito').value,
+            fecha: document.getElementById('m-fecha').value,
+            asunto: document.getElementById('m-asunto').value,
+            tipo: document.getElementById('m-tipo').value,
+            atencion: document.getElementById('m-atencion').value,
+            contenido: document.getElementById('m-contenido').value,
+            descargoAsiento: document.getElementById('m-descargo').value.trim(),
+            linkCarta: document.getElementById('m-link-carta').value.trim(),
+            linkCarpeta: document.getElementById('m-link-carpeta').value.trim()
+        };
+        if (!data.fecha || !data.asunto) return alert('⚠️ Complete Fecha y Asunto');
+        if (editingId) {
+            const idx = asientos.findIndex(a => a.id === editingId);
+            const merged = { ...asientos[idx], ...data };
+            delete merged.respuesta;
+            asientos[idx] = merged;
+        } else {
+            asientos.push(data);
+        }
+        saveToLocal();
+        updateKPIs();
+        refreshView();
+        closeModal();
+    }
+
+    function deleteAsiento(id) {
+        if (!confirm('⚠️ ¿Eliminar asiento definitivamente?')) return;
+        asientos = asientos.filter(a => a.id !== id);
+        saveToLocal();
+        updateKPIs();
+        refreshView();
+    }
+
+    function viewDetail(id) {
+        const a = asientos.find(x => x.id === id);
+        if (!a) return;
+        document.getElementById('detail-title').textContent = 'Asiento N° ' + a.id;
+        document.getElementById('detail-meta').textContent =
+            [a.suscrito, formatDate(a.fecha), a.tipo ? 'Tipo: ' + a.tipo : '', 'Atención: ' + getAtencion(a)]
+                .filter(Boolean).join(' · ');
+        document.getElementById('detail-asunto').textContent = a.asunto || '—';
+        document.getElementById('detail-descargo').textContent = (a.descargoAsiento && String(a.descargoAsiento).trim()) ? String(a.descargoAsiento).trim() : '—';
+        document.getElementById('detail-contenido').textContent = (a.contenido && String(a.contenido).trim()) ? a.contenido : 'Sin contenido registrado.';
+        document.getElementById('modal-detail').classList.add('active');
+    }
+
+    function editAsiento(id) { openModal(id); }
+    function toggleFilters() { document.getElementById('filters-panel').classList.toggle('active'); }
+
+    function exportExcel() {
+        const ws = XLSX.utils.json_to_sheet(asientos.map(a => ({
+            'Nro Asiento de Obra': a.id,
+            'Suscrito': a.suscrito,
+            'Fecha': a.fecha,
+            'Asunto': a.asunto,
+            'Contenido': a.contenido,
+            'Contenido (Detalle Completo)': a.contenido,
+            'Tipo': a.tipo,
+            'Atención': getAtencion(a),
+            'Respuesta': getAtencion(a),
+            'Descargo a Asiento': a.descargoAsiento || '',
+            'Carta': a.linkCarta || '',
+            'Carpeta': a.linkCarpeta || '',
+            'Link Carta': a.linkCarta || '',
+            'Link Carpeta': a.linkCarpeta || ''
+        })));
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Asientos");
+        XLSX.writeFile(wb, `Asientos_Obra_${new Date().toISOString().split('T')[0]}.xlsx`);
+    }
+
+    //  IMPORTACIÓN CORREGIDA Y ROBUSTA
+    document.getElementById('import-excel').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const fileModMs = file.lastModified;
+
+        const reader = new FileReader();
+        reader.onload = evt => {
+            try {
+                // Lectura moderna con ArrayBuffer
+                const data = new Uint8Array(evt.target.result);
+                const wb = XLSX.read(data, { type: 'array' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+                let importedCount = 0;
+                rows.forEach(r => {
+                    const row = {};
+                    Object.keys(r).forEach(k => { row[k.trim()] = r[k]; });
+
+                    const pickContenido = () =>
+                        row['Contenido'] || row['Contenido (Detalle Completo)'] || row['Contenido(Detalle Completo)'] || '';
+                    const pickAtencion = () => {
+                        const raw = row['Atención'] ?? row['Atencion'] ?? row['Respuesta'];
+                        const v = raw != null ? String(raw).toUpperCase().trim() : 'NA';
+                        return v === 'SI' || v === 'NO' || v === 'NA' ? v : 'NA';
+                    };
+                    const pickLink = (keys) => {
+                        for (const k of keys) {
+                            if (row[k] != null && String(row[k]).trim() !== '') return String(row[k]).trim();
+                        }
+                        return '';
+                    };
+
+                    const id = parseInt(row['Nro Asiento de Obra'], 10) || null;
+                    if (id && !asientos.find(a => a.id === id)) {
+                        asientos.push({
+                            id,
+                            suscrito: row['Suscrito'] || 'Contratista',
+                            fecha: parseExcelDate(row['Fecha']),
+                            asunto: row['Asunto'] || '',
+                            contenido: pickContenido(),
+                            tipo: row['Tipo'] || '',
+                            atencion: pickAtencion(),
+                            descargoAsiento: (row['Descargo a Asiento'] != null ? String(row['Descargo a Asiento']).trim() : '') || '',
+                            linkCarta: pickLink(['Carta', 'Link Carta', 'LinkCarta']),
+                            linkCarpeta: pickLink(['Carpeta', 'Link Carpeta', 'LinkCarpeta'])
+                        });
+                        importedCount++;
+                    }
+                });
+
+                saveToLocal();
+                persistedBdMeta = null;
+                setBdSourceFilename(file.name);
+                updateKPIs();
+                refreshView();
+                alert(`✅ Se importaron correctamente ${importedCount} asientos.`);
+            } catch (err) {
+                console.error("Error al importar Excel:", err);
+                alert(" Error al leer el archivo. Verifique que sea un Excel válido y que las columnas coincidan.");
+            }
+        };
+        reader.onerror = () => alert("❌ Error al leer el archivo desde el disco.");
+        reader.readAsArrayBuffer(file); // Método estándar actual
+    });
+
+    // 📅 Parseo de fechas compatible con Excel
+    function parseExcelDate(val) {
+        if (!val) return new Date().toISOString().split('T')[0];
+        if (val instanceof Date) return val.toISOString().split('T')[0];
+        if (typeof val === 'number') {
+            const epoch = new Date(1899, 11, 30);
+            const date = new Date(epoch.getTime() + val * 86400000);
+            return date.toISOString().split('T')[0];
+        }
+        const str = val.toString().trim();
+        if (str.includes('/')) {
+            const p = str.split('/');
+            let dd, mm, yy;
+            if (p[0].length <= 2) { // D/M/YY
+                dd = p[0].padStart(2, '0'); mm = p[1].padStart(2, '0');
+                yy = p[2].length === 2 ? '20' + p[2] : p[2];
+            } else { // YYYY/MM/DD
+                yy = p[0]; mm = p[1].padStart(2, '0'); dd = p[2].padStart(2, '0');
+            }
+            return `${yy}-${mm}-${dd}`;
+        }
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function padTs2(n) {
+        return String(n).padStart(2, '0');
+    }
+
+    function saveBD() {
+        const fname = _bdTimestampedFilename();
+        persistedBdMeta = { nombreArchivoBd: fname };
+        const payload = { __cuadernoBdArchivo: persistedBdMeta, asientos };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fname;
+        a.click();
+        URL.revokeObjectURL(url);
+        saveToLocal();
+        setBdSourceFilename(fname);
+    }
+
+    document.getElementById('import-bd').addEventListener('change', e=>{
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = evt => {
+            try {
+                const parsed = JSON.parse(evt.target.result);
+                const norm = normalizeImportedBdJson(parsed);
+                if (!norm.ok) {
+                    alert('❌ ' + norm.message);
+                    return;
+                }
+                persistedBdMeta = norm.metaRaw != null ? norm.metaRaw : null;
+                if (needsMigration(norm.list)) asientos = migrateAsientos(norm.list);
+                else asientos = norm.list;
+                saveToLocal();
+                const fnMeta = norm.metaRaw && norm.metaRaw.nombreArchivoBd ? norm.metaRaw.nombreArchivoBd : '';
+                setBdSourceFilename(fnMeta || file.name);
+                updateKPIs();
+                refreshView();
+                alert('✅ BD cargada exitosamente.');
+            } catch (err) {
+                alert('❌ Archivo inválido');
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    function saveToLocal() {
+        try {
+            if (persistedBdMeta != null) {
+                localStorage.setItem('asientos_obra_db_v2', JSON.stringify({ __cuadernoBdArchivo: persistedBdMeta, asientos }));
+            } else {
+                localStorage.setItem('asientos_obra_db_v2', JSON.stringify(asientos));
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    function formatDate(d) { if(!d) return '-'; const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; }
+    function escapeHtml(t) { if(!t) return ''; const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+    function escapeAttr(t) {
+        if (t == null) return '';
+        return String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;');
+    }
+
+    document.getElementById('modal-detail').addEventListener('click', e => {
+        if (e.target.id === 'modal-detail') closeDetailModal();
+    });
+
+    let currentReportTab = 'resumen';
+    let reportCharts = { pie: null, bar: null, donut: null };
+    let reportTotalAlaFecha = false;
+    let reportDateListenersBound = false;
+
+    const REP_NOMBRES_MES = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    function getTodayISO() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function getReportMonthRange() {
+        const anio = parseInt(document.getElementById('rep-anio').value, 10);
+        const mes = parseInt(document.getElementById('rep-mes').value, 10);
+        const pad = n => String(n).padStart(2, '0');
+        const last = new Date(anio, mes, 0).getDate();
+        return { from: `${anio}-${pad(mes)}-01`, to: `${anio}-${pad(mes)}-${pad(last)}` };
+    }
+
+    function asientoDentroFiltroFecha(a) {
+        const f = a.fecha;
+        if (f == null || String(f).trim() === '') return false;
+        const fs = String(f).trim().slice(0, 10);
+        if (reportTotalAlaFecha) return fs <= getTodayISO();
+        const { from, to } = getReportMonthRange();
+        return fs >= from && fs <= to;
+    }
+
+    function getReportFilteredAsientos() {
+        return asientos.filter(asientoDentroFiltroFecha);
+    }
+
+    function syncReportTotalButtonStyle() {
+        const btn = document.getElementById('rep-btn-total-fecha');
+        if (btn) btn.classList.toggle('active', reportTotalAlaFecha);
+    }
+
+    function updateReportFilterHint() {
+        const el = document.getElementById('rep-filter-hint');
+        if (!el) return;
+        if (reportTotalAlaFecha) {
+            el.textContent = `Filtro activo: total a la fecha (asientos con fecha hasta ${formatDate(getTodayISO())}).`;
+        } else {
+            const m = parseInt(document.getElementById('rep-mes').value, 10);
+            const y = document.getElementById('rep-anio').value;
+            el.textContent = `Filtro activo: ${REP_NOMBRES_MES[m] || 'Mes'} de ${y}.`;
+        }
+    }
+
+    function initReportFilterDefaults() {
+        const mesEl = document.getElementById('rep-mes');
+        const anioEl = document.getElementById('rep-anio');
+        if (!mesEl || !anioEl) return;
+        const d = new Date();
+        mesEl.value = String(d.getMonth() + 1);
+        let y = d.getFullYear();
+        if (y < 2025) y = 2025;
+        if (y > 2027) y = 2027;
+        anioEl.value = String(y);
+        reportTotalAlaFecha = false;
+        syncReportTotalButtonStyle();
+    }
+
+    function bindReportDateFiltersOnce() {
+        if (reportDateListenersBound) return;
+        const mes = document.getElementById('rep-mes');
+        const anio = document.getElementById('rep-anio');
+        const btn = document.getElementById('rep-btn-total-fecha');
+        if (!mes || !anio || !btn) return;
+        reportDateListenersBound = true;
+        mes.addEventListener('change', () => {
+            reportTotalAlaFecha = false;
+            syncReportTotalButtonStyle();
+            refreshReportesIfOpen();
+        });
+        anio.addEventListener('change', () => {
+            reportTotalAlaFecha = false;
+            syncReportTotalButtonStyle();
+            refreshReportesIfOpen();
+        });
+        btn.addEventListener('click', () => {
+            reportTotalAlaFecha = true;
+            syncReportTotalButtonStyle();
+            refreshReportesIfOpen();
+        });
+    }
+
+    const KPI_DETALLE_TIPOS = [
+        'ANTICIPO', 'CAMBIO PC', 'TÉCNICO', 'INGENIERÍA DE DETALLE', 'SSOMA', 'PGAS', 'INFORMATIVO', 'MDIA',
+        'CRONOGRAMA', 'TDT', 'PMAR', 'VALORIZACIÓN', 'MUNICIPALIDAD', 'DISEÑOS DE MEZCLA', 'PLANOS', 'OTROS'
+    ];
+
+    const REPORT_ROLES = [
+        { key: 'contratista', label: 'Contratista', match: a => a.suscrito === 'Contratista' },
+        { key: 'supervision', label: 'Supervisión', match: a => a.suscrito === 'Supervisión' },
+        { key: 'inspector', label: 'Inspector', match: a => a.suscrito === 'Inspector de Obra' }
+    ];
+
+    function tipoRowKey(a) {
+        const raw = (a.tipo != null ? String(a.tipo).trim() : '') || '';
+        if (!raw) return 'OTROS';
+        const up = raw.toUpperCase();
+        const found = KPI_DETALLE_TIPOS.find(k => k !== 'OTROS' && up === k);
+        return found || 'OTROS';
+    }
+
+    function destroyReportCharts() {
+        ['pie', 'bar', 'donut'].forEach(k => {
+            if (reportCharts[k]) {
+                reportCharts[k].destroy();
+                reportCharts[k] = null;
+            }
+        });
+    }
+
+    function openReportes() {
+        document.getElementById('modal-reportes').classList.add('active');
+        switchReportTab(currentReportTab || 'resumen');
+    }
+
+    function closeReportes() {
+        destroyReportCharts();
+        document.getElementById('modal-reportes').classList.remove('active');
+    }
+
+    function switchReportTab(tab) {
+        if (tab !== 'resumen') destroyReportCharts();
+        currentReportTab = tab;
+        document.querySelectorAll('.report-tab').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-report-tab') === tab);
+        });
+        document.querySelectorAll('.report-pane').forEach(p => {
+            p.classList.toggle('active', p.id === 'report-pane-' + tab);
+        });
+        if (tab === 'resumen') renderReporteResumen();
+        else if (tab === 'por-atender') renderReporteLista('por-atender', a => getAtencion(a) === 'NO');
+        else if (tab === 'atendidas') renderReporteLista('atendidas', a => getAtencion(a) === 'SI');
+        else if (tab === 'otras') renderReporteLista('otras', a => getAtencion(a) === 'NA');
+        else if (tab === 'descargo') renderReporteLista('descargo', a => hasDescargo(a));
+        else if (tab === 'kpis') renderReporteKpisDetallados();
+        updateReportFilterHint();
+    }
+
+    function pct(part, total) {
+        if (!total) return '0.00';
+        return ((100 * part) / total).toFixed(2);
+    }
+
+    function renderReporteResumen() {
+        destroyReportCharts();
+        const data = getReportFilteredAsientos();
+        const total = data.length;
+        const nCont = data.filter(a => a.suscrito === 'Contratista').length;
+        const nSup = data.filter(a => a.suscrito === 'Supervisión').length;
+        const nInsp = data.filter(a => a.suscrito === 'Inspector de Obra').length;
+        const nSi = data.filter(a => getAtencion(a) === 'SI').length;
+        const nNo = data.filter(a => getAtencion(a) === 'NO').length;
+        const nNa = data.filter(a => getAtencion(a) === 'NA').length;
+        const nAttendSum = nSi + nNo;
+
+        const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        setText('rep-kpi-total', String(total));
+        setText('rep-kpi-cont', String(nCont));
+        setText('rep-kpi-cont-p', pct(nCont, total) + '%');
+        setText('rep-kpi-sup', String(nSup));
+        setText('rep-kpi-sup-p', pct(nSup, total) + '%');
+        setText('rep-kpi-insp', String(nInsp));
+        setText('rep-kpi-insp-p', pct(nInsp, total) + '%');
+        setText('rep-kpi-si', String(nSi));
+        setText('rep-kpi-si-p', pct(nSi, total) + '%');
+        setText('rep-kpi-no', String(nNo));
+        setText('rep-kpi-no-p', pct(nNo, total) + '%');
+        setText('rep-kpi-na', String(nNa));
+        setText('rep-kpi-na-p', pct(nNa, total) + '%');
+        setText('rep-kpi-sino', String(nAttendSum));
+        setText('rep-kpi-sino-p', pct(nAttendSum, total) + '%');
+
+        const pctSiOfSiNo = nAttendSum ? Math.round((100 * nSi) / nAttendSum) : 0;
+        const pctNoOfSiNo = nAttendSum ? Math.round((100 * nNo) / nAttendSum) : 0;
+        const ulInd = document.getElementById('rep-kpi-indicadores-list');
+        if (ulInd) {
+            ulInd.innerHTML = `
+                <li><span><i class="fas fa-arrow-up" style="color:#16a34a"></i> Total de asientos</span><strong>${total}</strong></li>
+                <li><span><i class="fas fa-check" style="color:#ca8a04"></i> Atendidas</span><strong>${nSi} / ${pct(nSi, total)}%</strong></li>
+                <li><span><i class="fas fa-clock" style="color:#dc2626"></i> Por atender</span><strong>${nNo} / ${pct(nNo, total)}%</strong></li>
+                <li><span><i class="fas fa-folder" style="color:#2563eb"></i> Otras gestiones</span><strong>${nNa} / ${pct(nNa, total)}%</strong></li>
+                <li><span><i class="fas fa-percent" style="color:#0d9488"></i> Distribución SI vs NO</span><strong>${pctSiOfSiNo}% / ${pctNoOfSiNo}%</strong></li>`;
+        }
+
+        const tbodyEstado = document.getElementById('rep-tbody-estado');
+        if (tbodyEstado) {
+            let html = '';
+            REPORT_ROLES.forEach(r => {
+                const sub = data.filter(r.match);
+                const si = sub.filter(a => getAtencion(a) === 'SI').length;
+                const no = sub.filter(a => getAtencion(a) === 'NO').length;
+                const na = sub.filter(a => getAtencion(a) === 'NA').length;
+                html += `<tr><td>${escapeHtml(r.label)}</td><td style="text-align:center">${si}</td><td style="text-align:center">${no}</td><td style="text-align:center">${na}</td><td style="text-align:center;font-weight:700">${sub.length}</td></tr>`;
+            });
+            const tSi = data.filter(a => getAtencion(a) === 'SI').length;
+            const tNo = data.filter(a => getAtencion(a) === 'NO').length;
+            const tNa = data.filter(a => getAtencion(a) === 'NA').length;
+            html += `<tr style="font-weight:800;background:#e0f2fe"><td>TOTAL</td><td style="text-align:center">${tSi}</td><td style="text-align:center">${tNo}</td><td style="text-align:center">${tNa}</td><td style="text-align:center">${total}</td></tr>`;
+            tbodyEstado.innerHTML = html;
+        }
+
+        const tbodyDet = document.getElementById('rep-tbody-detalle');
+        if (tbodyDet) {
+            let html = '';
+            REPORT_ROLES.forEach(r => {
+                const sub = data.filter(r.match);
+                const si = sub.filter(a => getAtencion(a) === 'SI').length;
+                const no = sub.filter(a => getAtencion(a) === 'NO').length;
+                const na = sub.filter(a => getAtencion(a) === 'NA').length;
+                const sino = si + no;
+                const pSi = sino ? pct(si, sino) : '0.00';
+                const pNo = sino ? pct(no, sino) : '0.00';
+                html += `<tr>
+                    <td>${escapeHtml(r.label)}</td>
+                    <td style="text-align:center">${sub.length}</td>
+                    <td style="text-align:center">${r.key === 'contratista' ? sub.length : '—'}</td>
+                    <td style="text-align:center">${r.key === 'supervision' ? sub.length : '—'}</td>
+                    <td style="text-align:center">${r.key === 'inspector' ? sub.length : '—'}</td>
+                    <td style="text-align:center">${si}</td><td style="text-align:center">${no}</td><td style="text-align:center">${na}</td>
+                    <td style="text-align:center">${sino}</td><td style="text-align:center">${pSi}%</td><td style="text-align:center">${pNo}%</td>
+                </tr>`;
+            });
+            const tSi = data.filter(a => getAtencion(a) === 'SI').length;
+            const tNo = data.filter(a => getAtencion(a) === 'NO').length;
+            const tNa = data.filter(a => getAtencion(a) === 'NA').length;
+            const tSiNo = tSi + tNo;
+            html += `<tr style="font-weight:800;background:#e0f2fe">
+                <td>TOTAL</td><td style="text-align:center">${total}</td>
+                <td style="text-align:center">${nCont}</td><td style="text-align:center">${nSup}</td><td style="text-align:center">${nInsp}</td>
+                <td style="text-align:center">${tSi}</td><td style="text-align:center">${tNo}</td><td style="text-align:center">${tNa}</td>
+                <td style="text-align:center">${tSiNo}</td>
+                <td style="text-align:center">${tSiNo ? pct(tSi, tSiNo) : '0.00'}%</td>
+                <td style="text-align:center">${tSiNo ? pct(tNo, tSiNo) : '0.00'}%</td>
+            </tr>`;
+            tbodyDet.innerHTML = html;
+        }
+
+        if (typeof Chart === 'undefined') return;
+
+        const pieEl = document.getElementById('chart-resp');
+        const barEl = document.getElementById('chart-estado');
+        const donutEl = document.getElementById('chart-donut');
+        const useDL = reportChartsUseDataLabels();
+        const pieLabels = ['Contratista', 'Supervisión', 'Inspector'];
+        const pieData = [nCont, nSup, nInsp];
+        const pieColors = ['#3b82f6', '#22c55e', '#eab308'];
+        const pieSum = pieData.reduce((a, b) => a + b, 0);
+
+        if (pieEl && pieSum > 0) {
+            reportCharts.pie = new Chart(pieEl, {
+                type: 'pie',
+                data: {
+                    labels: pieLabels,
+                    datasets: [{
+                        data: pieData,
+                        backgroundColor: pieColors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 14,
+                                padding: 10,
+                                font: { size: 11 },
+                                generateLabels(chart) {
+                                    const ds = chart.data.datasets[0];
+                                    const meta = chart.getDatasetMeta(0);
+                                    const sum = ds.data.reduce((x, y) => x + y, 0);
+                                    return chart.data.labels.map((label, i) => ({
+                                        text: `${label}: ${ds.data[i]} (${sum ? ((100 * ds.data[i]) / sum).toFixed(2) : '0.00'}%)`,
+                                        fillStyle: ds.backgroundColor[i],
+                                        strokeStyle: ds.borderColor,
+                                        lineWidth: typeof ds.borderWidth === 'number' ? ds.borderWidth : 2,
+                                        hidden: meta.data[i] ? meta.data[i].hidden === true : false,
+                                        index: i,
+                                        datasetIndex: 0
+                                    }));
+                                }
+                            }
+                        },
+                        ...(useDL ? {
+                            datalabels: {
+                                display(ctx) { return pieData[ctx.dataIndex] > 0; },
+                                formatter(value) {
+                                    if (!pieSum || !value) return '';
+                                    return ((100 * value) / pieSum).toFixed(2) + '%';
+                                },
+                                color(ctx) { return ctx.dataIndex === 2 ? '#0f172a' : '#fff'; },
+                                font: { weight: '700', size: 11 },
+                                textStrokeColor(ctx) { return ctx.dataIndex === 2 ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.35)'; },
+                                textStrokeWidth: 2
+                            }
+                        } : {})
+                    }
+                }
+            });
+        }
+        if (barEl) {
+            reportCharts.bar = new Chart(barEl, {
+                type: 'bar',
+                data: {
+                    labels: ['Atendidas', 'Por Atender', 'Otras gestiones'],
+                    datasets: [{
+                        label: 'Asientos',
+                        data: [nSi, nNo, nNa],
+                        backgroundColor: ['#0d9488', '#ea580c', '#2563eb'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    layout: { padding: { top: 28 } },
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        ...(useDL ? {
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                offset: 4,
+                                formatter: v => String(v),
+                                color: '#0f172a',
+                                font: { weight: '800', size: 12 }
+                            }
+                        } : {})
+                    },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+        }
+        if (donutEl && nAttendSum > 0) {
+            reportCharts.donut = new Chart(donutEl, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Porcentaje Atendidas', 'Porcentaje Por Atender'],
+                    datasets: [{
+                        data: [nSi, nNo],
+                        backgroundColor: ['#0d9488', '#dc2626'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    cutout: '56%',
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        ...(useDL ? {
+                            datalabels: {
+                                formatter(value, ctx) {
+                                    const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    if (!sum || !value) return '';
+                                    return Math.round((100 * value) / sum) + '%';
+                                },
+                                color: '#fff',
+                                font: { weight: '800', size: 14 },
+                                textStrokeColor: 'rgba(0,0,0,0.35)',
+                                textStrokeWidth: 2
+                            }
+                        } : {})
+                    }
+                }
+            });
+        }
+    }
+
+    const REPORT_TABLAS_SELECCIONABLES = new Set(['por-atender', 'atendidas', 'otras']);
+
+    function renderReporteLista(suffix, predicate) {
+        const rowSel = REPORT_TABLAS_SELECCIONABLES.has(suffix) ? ' class="report-selectable-row"' : '';
+        const data = getReportFilteredAsientos();
+        REPORT_ROLES.forEach(r => {
+            const rows = data.filter(a => r.match(a) && predicate(a));
+            const host = document.getElementById('rep-tbody-' + suffix + '-' + r.key);
+            if (!host) return;
+            if (!rows.length) {
+                host.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">Sin registros.</td></tr>';
+                return;
+            }
+            host.innerHTML = rows.map((a, i) => `
+                <tr${rowSel}>
+                    <td>${i + 1}</td>
+                    <td class="num" style="font-weight:700">${a.id}</td>
+                    <td>${escapeHtml(a.asunto || '')}</td>
+                    <td class="fecha">${formatDate(a.fecha)}</td>
+                    <td>${escapeHtml(a.tipo || '')}</td>
+                    <td class="link-cell">${linkIconCell(a.linkCarta, 'carta')}</td>
+                    <td class="link-cell">${linkIconCell(a.linkCarpeta, 'carpeta')}</td>
+                </tr>
+            `).join('');
+        });
+    }
+
+    function renderReporteKpisDetallados() {
+        const data = getReportFilteredAsientos();
+        REPORT_ROLES.forEach(r => {
+            const sub = data.filter(r.match);
+            const host = document.getElementById('rep-tbody-kpi-' + r.key);
+            if (!host) return;
+            const displayRows = KPI_DETALLE_TIPOS.map(tipoLabel => {
+                const inTipo = sub.filter(a => tipoRowKey(a) === tipoLabel);
+                const at = inTipo.filter(a => getAtencion(a) === 'SI').length;
+                const pend = inTipo.filter(a => getAtencion(a) === 'NO').length;
+                const otr = inTipo.filter(a => getAtencion(a) === 'NA').length;
+                const tot = at + pend + otr;
+                return { tipoLabel, at, pend, otr, tot };
+            });
+
+            host.innerHTML = displayRows.map(row => `
+                <tr class="report-selectable-row">
+                    <td>${escapeHtml(row.tipoLabel)}</td>
+                    <td style="text-align:center">${row.at}</td>
+                    <td style="text-align:center">${row.pend}</td>
+                    <td style="text-align:center">${row.otr}</td>
+                    <td style="text-align:center;font-weight:600">${row.tot}</td>
+                </tr>
+            `).join('');
+        });
+    }
+
+    function refreshReportesIfOpen() {
+        const m = document.getElementById('modal-reportes');
+        if (m && m.classList.contains('active')) switchReportTab(currentReportTab);
+    }
+
+    (function bindReportesBackdrop() {
+        const m = document.getElementById('modal-reportes');
+        if (m) m.addEventListener('click', e => { if (e.target.id === 'modal-reportes') closeReportes(); });
+    })();
+
+    (function bindReportTableRowSelect() {
+        const inner = document.querySelector('#modal-reportes .modal-report-inner');
+        if (!inner) return;
+        inner.addEventListener('click', e => {
+            const tr = e.target.closest('tr.report-selectable-row');
+            if (!tr) return;
+            if (e.target.closest('a')) return;
+            tr.classList.toggle('rep-row-selected');
+        });
+    })();
+
+    window.onload = init;
+</script>
+</body>
+</html>
